@@ -7,6 +7,14 @@ import {
   type Employment,
   type ExperienceLevel,
 } from "../src/generated/prisma/client";
+import { hashPassword } from "../src/lib/password";
+
+// Тестовые аккаунты (только для локальной разработки, пароль у всех: password123)
+const USERS = [
+  { email: "admin@stackwork.local", name: "Администратор", role: "ADMIN" as const, company: null },
+  { email: "employer@stackwork.local", name: "Ирина, HR Квант Банк", role: "EMPLOYER" as const, company: "kvant-bank" },
+  { email: "candidate@stackwork.local", name: "Тест Кандидат", role: "CANDIDATE" as const, company: null },
+];
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const db = new PrismaClient({ adapter });
@@ -313,8 +321,19 @@ async function main() {
     });
   }
 
+  console.log("Seeding test users…");
+  const passwordHash = await hashPassword("password123");
+  for (const u of USERS) {
+    const companyId = u.company ? companyBySlug.get(u.company) : undefined;
+    await db.user.upsert({
+      where: { email: u.email },
+      update: { name: u.name, role: u.role, companyId: companyId ?? null },
+      create: { email: u.email, name: u.name, role: u.role, passwordHash, companyId: companyId ?? null },
+    });
+  }
+
   const count = await db.vacancy.count();
-  console.log(`Done. Vacancies in DB: ${count}`);
+  console.log(`Done. Vacancies in DB: ${count}. Test users: ${USERS.map((u) => u.email).join(", ")} (password123)`);
 }
 
 main()
