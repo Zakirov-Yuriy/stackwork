@@ -4,7 +4,16 @@ import type {
   Employment,
   ExperienceLevel,
   SalaryType,
+  ApplicationStatus,
 } from "@/generated/prisma/client";
+
+export const APPLICATION_STATUS_LABEL: Record<ApplicationStatus, string> = {
+  NEW: "новый",
+  VIEWED: "просмотрен",
+  INTERVIEW: "приглашение на интервью",
+  OFFER: "оффер",
+  REJECTED: "отказ",
+};
 
 export const GRADE_LABEL: Record<Grade, string> = {
   JUNIOR: "Junior",

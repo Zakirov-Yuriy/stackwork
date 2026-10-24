@@ -7,6 +7,10 @@ import { SiteFooter } from "@/components/site-footer";
 import { Chip } from "@/components/vacancy-card";
 import { BookmarkIcon, ShareIcon } from "@/components/icons";
 import { getVacancyBySlug, similarVacancies, countCompanyVacancies } from "@/lib/vacancies";
+import { getCurrentUser } from "@/lib/session";
+import { db } from "@/lib/db";
+import { ApplyForm } from "./apply-form";
+import { APPLICATION_STATUS_LABEL } from "@/lib/labels";
 import {
   GRADE_LABEL,
   WORK_FORMAT_LABEL,
@@ -79,12 +83,19 @@ export default async function VacancyPage(props: PageProps<"/vacancies/[slug]">)
   if (!v) notFound();
 
   const now = new Date();
-  const [similar, openCount] = await Promise.all([
+  const user = await getCurrentUser();
+  const [similar, openCount, myApplication] = await Promise.all([
     similarVacancies(
       v.id,
       v.skills.map((s) => s.skillId),
     ),
     countCompanyVacancies(v.companyId),
+    user?.role === "CANDIDATE"
+      ? db.application.findUnique({
+          where: { vacancyId_candidateId: { vacancyId: v.id, candidateId: user.id } },
+          select: { status: true, createdAt: true },
+        })
+      : null,
   ]);
 
   const salary = formatSalary(v.salaryFrom, v.salaryTo, v.currency);
@@ -215,32 +226,50 @@ export default async function VacancyPage(props: PageProps<"/vacancies/[slug]">)
               ) : null}
             </section>
 
-            <section
-              id="respond"
-              className="flex flex-wrap items-center gap-5 rounded-xl bg-ink p-7 text-white"
-            >
-              <div className="flex flex-[1_1_320px] flex-col gap-1.5">
-                <h2 className="m-0 text-xl font-extrabold">Откликнуться на вакансию</h2>
-                <p className="m-0 text-sm leading-relaxed text-header-muted">
-                  {v.acceptsGithubLink
-                    ? "Резюме с сайта или ссылка на GitHub. Ответ работодателя придёт в чат и на почту."
-                    : "Резюме с сайта. Ответ работодателя придёт в чат и на почту."}
-                </p>
+            <section id="respond" className="flex flex-col gap-5 rounded-xl bg-ink p-7 text-white">
+              <div className="flex flex-wrap items-center gap-5">
+                <div className="flex flex-[1_1_320px] flex-col gap-1.5">
+                  <h2 className="m-0 text-xl font-extrabold">Откликнуться на вакансию</h2>
+                  <p className="m-0 text-sm leading-relaxed text-header-muted">
+                    {v.acceptsGithubLink
+                      ? "Ссылка на резюме или на GitHub. Ответ работодателя появится в «Моих откликах»."
+                      : "Ссылка на резюме. Ответ работодателя появится в «Моих откликах»."}
+                  </p>
+                </div>
+                {!user ? (
+                  <div className="flex flex-wrap gap-2.5">
+                    <Link
+                      href={`/login?next=${encodeURIComponent(`/vacancies/${v.slug}#respond`)}`}
+                      className="inline-flex min-h-12 items-center rounded-[10px] bg-accent px-6 text-[15px] font-extrabold text-ink hover:brightness-95"
+                    >
+                      Войти и откликнуться
+                    </Link>
+                    <Link
+                      href={`/register?next=${encodeURIComponent(`/vacancies/${v.slug}#respond`)}`}
+                      className="inline-flex min-h-12 items-center px-3 text-sm font-semibold text-header-muted hover:text-white"
+                    >
+                      Зарегистрироваться
+                    </Link>
+                  </div>
+                ) : null}
               </div>
-              <div className="flex flex-wrap gap-2.5">
-                <Link
-                  href={`/login?next=/vacancies/${v.slug}%23respond`}
-                  className="inline-flex min-h-12 items-center rounded-[10px] bg-accent px-6 text-[15px] font-extrabold text-ink hover:brightness-95"
-                >
-                  Откликнуться
-                </Link>
-                <Link
-                  href={`/report?vacancy=${v.slug}`}
-                  className="inline-flex min-h-12 items-center px-3 text-sm font-semibold text-header-muted hover:text-white"
-                >
-                  Пожаловаться на вакансию
-                </Link>
-              </div>
+
+              {user?.role === "CANDIDATE" && myApplication ? (
+                <div role="status" className="rounded-lg border border-[#2F6F55] bg-[#1C3A2E] px-4 py-3 text-sm font-semibold text-[#BFE9D3]">
+                  Вы откликнулись {formatDate(myApplication.createdAt)}. Статус: {APPLICATION_STATUS_LABEL[myApplication.status]}.{" "}
+                  <Link href="/me" className="text-white underline">
+                    Мои отклики
+                  </Link>
+                </div>
+              ) : user?.role === "CANDIDATE" ? (
+                <ApplyForm slug={v.slug} acceptsGithubLink={v.acceptsGithubLink} />
+              ) : user ? (
+                <p className="m-0 text-sm text-header-muted">Откликаться могут только аккаунты соискателей. Вы вошли как работодатель.</p>
+              ) : null}
+
+              <Link href={`/report?vacancy=${v.slug}`} className="self-start text-[13px] font-semibold text-header-muted hover:text-white">
+                Пожаловаться на вакансию
+              </Link>
             </section>
           </article>
 
