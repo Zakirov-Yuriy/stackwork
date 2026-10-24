@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/* Дизайн-токены Stackwork (из макета) */
+:root {
+  --ink: #15171a; /* основной текст, шапка */
+  --ink-2: #2a2f36; /* текст в метках */
+  --muted: #5b6168; /* вторичный текст (4.5:1 на белом) */
+  --muted-2: #7a818a; /* подписи 12–13px */
+  --paper: #f4f4f2; /* фон страницы */
+  --card: #ffffff;
+  --line: #e4e6e3; /* границы карточек */
+  --line-2: #c9ccc8; /* границы полей */
+  --soft: #eef0f2; /* фон серых меток */
+  --accent: #c9f24f; /* акцент: кнопки действия */
+  --link: #1f6f58;
+  --header-muted: #b9bdb8;
+  --header-line: #3a3d42;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-soft: var(--soft);
+  --color-accent: var(--accent);
+  --color-link: var(--link);
+  --color-header-muted: var(--header-muted);
+  --color-header-line: var(--header-line);
+
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+/* Пилюли-чекбоксы для стека: input скрыт, выбранное состояние через :has */
+.tag-pill input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.tag-pill:has(input:checked) {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}

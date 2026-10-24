@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: stackwork-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: stackwork
+      POSTGRES_PASSWORD: stackwork
+      POSTGRES_DB: stackwork
+    ports:
+      - "5432:5432"
+    volumes:
+      - stackwork-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stackwork -d stackwork"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  stackwork-pgdata:

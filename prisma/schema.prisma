@@ -1,0 +1,192 @@
+// Prisma schema for Stackwork.
+// Подключение к базе задаётся в prisma.config.ts (DATABASE_URL из .env).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────────── Пользователи ─────────────────────────────
+
+enum UserRole {
+  CANDIDATE // соискатель
+  EMPLOYER // работодатель
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?
+  name         String?
+  role         UserRole @default(CANDIDATE)
+  companyId    String?
+  company      Company? @relation(fields: [companyId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  applications Application[]
+  vacancies    Vacancy[]     @relation("VacancyAuthor")
+
+  @@index([companyId])
+}
+
+// ───────────────────────────── Компании ─────────────────────────────
+
+model Company {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  industry    String?
+  city        String?
+  website     String?
+  // Аббревиатура для аватара, если нет логотипа: «КБ», «ОМ»
+  initials    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members   User[]
+  vacancies Vacancy[]
+}
+
+// ───────────────────────────── Вакансии ─────────────────────────────
+
+enum Grade {
+  JUNIOR
+  MIDDLE
+  SENIOR
+  LEAD
+}
+
+enum WorkFormat {
+  REMOTE // удалённо
+  HYBRID // гибрид
+  OFFICE // офис
+  REMOTE_OR_OFFICE // на выбор
+}
+
+enum Employment {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+}
+
+enum SalaryType {
+  NET // на руки
+  GROSS // до вычета
+}
+
+enum ExperienceLevel {
+  NONE // без опыта
+  ONE_TO_THREE
+  THREE_TO_SIX
+  SIX_PLUS
+}
+
+enum VacancyStatus {
+  DRAFT
+  MODERATION
+  PUBLISHED
+  ARCHIVED
+  REJECTED
+}
+
+model Vacancy {
+  id    String @id @default(cuid())
+  slug  String @unique
+  title String
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+  authorId  String?
+  author    User?   @relation("VacancyAuthor", fields: [authorId], references: [id])
+
+  direction  String // Backend, Frontend, DevOps / SRE, Data / ML, QA…
+  grade      Grade
+  experience ExperienceLevel
+  workFormat WorkFormat
+  employment Employment
+  city       String?
+
+  // Зарплата обязательна: вакансии без вилки не публикуются.
+  salaryFrom Int?
+  salaryTo   Int?
+  currency   String     @default("RUB")
+  salaryType SalaryType @default(NET)
+
+  // Разделы описания, каждый отдельным полем (списки через перенос строки).
+  aboutTeam        String?
+  responsibilities String?
+  requirements     String?
+  niceToHave       String?
+  conditions       String?
+
+  acceptsGithubLink Boolean @default(false)
+  showCompanyName   Boolean @default(true)
+
+  status      VacancyStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  skills       VacancySkill[]
+  applications Application[]
+
+  @@index([status, publishedAt])
+  @@index([companyId])
+  @@index([grade])
+  @@index([workFormat])
+}
+
+// Справочник технологий: Go, PostgreSQL, Kafka…
+model Skill {
+  id   String @id @default(cuid())
+  slug String @unique
+  name String
+
+  vacancies VacancySkill[]
+}
+
+model VacancySkill {
+  vacancyId String
+  skillId   String
+  order     Int    @default(0)
+
+  vacancy Vacancy @relation(fields: [vacancyId], references: [id], onDelete: Cascade)
+  skill   Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([vacancyId, skillId])
+  @@index([skillId])
+}
+
+// ───────────────────────────── Отклики ─────────────────────────────
+
+enum ApplicationStatus {
+  NEW
+  VIEWED
+  INTERVIEW
+  OFFER
+  REJECTED
+}
+
+model Application {
+  id          String            @id @default(cuid())
+  vacancyId   String
+  vacancy     Vacancy           @relation(fields: [vacancyId], references: [id], onDelete: Cascade)
+  candidateId String
+  candidate   User              @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  coverLetter String?
+  githubUrl   String?
+  resumeUrl   String?
+  status      ApplicationStatus @default(NEW)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([vacancyId, candidateId])
+  @@index([candidateId])
+}
