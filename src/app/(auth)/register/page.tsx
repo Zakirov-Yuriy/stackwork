@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { AuthCard, AuthTitle, SocialRow } from "../auth-card";
 import { RegisterForm } from "./register-form";
+import { turnstileSiteKey } from "@/lib/turnstile";
 
 export const metadata: Metadata = { title: "Регистрация" };
 
@@ -16,7 +17,7 @@ export default async function RegisterPage(props: PageProps<"/register">) {
   return (
     <AuthCard active="register" next={next}>
       <AuthTitle title="Создать аккаунт" subtitle="Выберите роль: от неё зависит, какой кабинет откроется." />
-      <RegisterForm next={next} initialRole={initialRole} />
+      <RegisterForm next={next} initialRole={initialRole} siteKey={turnstileSiteKey()} />
       <SocialRow />
     </AuthCard>
   );

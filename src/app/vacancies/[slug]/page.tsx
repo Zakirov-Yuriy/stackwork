@@ -5,11 +5,15 @@ import { cache } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Chip, SkillTag } from "@/components/vacancy-card";
-import { BookmarkIcon, ShareIcon } from "@/components/icons";
+import { SaveButton } from "@/components/save-button";
+import { ShareButton } from "@/components/share-button";
+import { savedIdsFor } from "@/lib/saved";
 import { getVacancyBySlug, similarVacancies, countCompanyVacancies } from "@/lib/vacancies";
 import { getCurrentUser } from "@/lib/session";
 import { db } from "@/lib/db";
 import { ApplyForm } from "./apply-form";
+import { turnstileSiteKey } from "@/lib/turnstile";
+import { VerifyBanner } from "@/components/verify-banner";
 import {
   APPLICATION_STATUS_LABEL,
   GRADE_LABEL,
@@ -34,9 +38,12 @@ export async function generateMetadata(props: PageProps<"/vacancies/[slug]">): P
   const v = await loadVacancy(slug);
   if (!v) return { title: "Вакансия не найдена" };
   const salary = formatSalary(v.salaryFrom, v.salaryTo, v.currency);
+  const description = `${salary} ${SALARY_TYPE_LABEL[v.salaryType]} · ${GRADE_LABEL[v.grade]} · ${WORK_FORMAT_LABEL[v.workFormat]}. ${v.skills.map((s) => s.skill.name).join(", ")}`;
   return {
     title: `${v.title}, ${v.company.name}`,
-    description: `${salary} ${SALARY_TYPE_LABEL[v.salaryType]} · ${GRADE_LABEL[v.grade]} · ${WORK_FORMAT_LABEL[v.workFormat]}. ${v.skills.map((s) => s.skill.name).join(", ")}`,
+    description,
+    alternates: { canonical: `/vacancies/${v.slug}` },
+    openGraph: { type: "article", title: `${v.title} · ${v.company.name}`, description, url: `/vacancies/${v.slug}` },
   };
 }
 
@@ -86,7 +93,10 @@ export default async function VacancyPage(props: PageProps<"/vacancies/[slug]">)
 
   const now = new Date();
   const user = await getCurrentUser();
-  const [similar, openCount, myApplication] = await Promise.all([
+  // Счётчик просмотров: без ожидания, ошибки не влияют на страницу
+  db.vacancy.update({ where: { id: v.id }, data: { views: { increment: 1 } } }).catch(() => {});
+
+  const [similar, openCount, myApplication, saved] = await Promise.all([
     similarVacancies(
       v.id,
       v.skills.map((s) => s.skillId),
@@ -98,6 +108,7 @@ export default async function VacancyPage(props: PageProps<"/vacancies/[slug]">)
           select: { status: true, createdAt: true },
         })
       : null,
+    savedIdsFor(user?.id, [v.id]),
   ]);
 
   const salary = formatSalary(v.salaryFrom, v.salaryTo, v.currency);
@@ -157,13 +168,8 @@ export default async function VacancyPage(props: PageProps<"/vacancies/[slug]">)
                 <a href="#respond" className="neu-primary-sm" style={{ minHeight: 48, padding: "0 24px", fontSize: 15 }}>
                   Откликнуться
                 </a>
-                <button type="button" className="neu-btn-sm" style={{ minHeight: 48 }}>
-                  <BookmarkIcon />
-                  Сохранить
-                </button>
-                <button type="button" aria-label="Поделиться вакансией" className="neu-btn-sm h-12 w-12 px-0">
-                  <ShareIcon />
-                </button>
+                <SaveButton vacancyId={v.id} saved={saved.has(v.id)} back={`/vacancies/${v.slug}`} withLabel />
+                <ShareButton title={v.title} path={`/vacancies/${v.slug}`} />
                 {v.publishedAt ? (
                   <span className={`ml-auto text-[13px] ${muted}`}>
                     Опубликовано {formatDate(v.publishedAt)} · {formatRelative(v.publishedAt, now)}
@@ -241,8 +247,10 @@ export default async function VacancyPage(props: PageProps<"/vacancies/[slug]">)
                     Мои отклики
                   </Link>
                 </div>
+              ) : user?.role === "CANDIDATE" && !user.emailVerifiedAt ? (
+                <VerifyBanner user={user} what="нельзя откликаться" />
               ) : user?.role === "CANDIDATE" ? (
-                <ApplyForm slug={v.slug} acceptsGithubLink={v.acceptsGithubLink} />
+                <ApplyForm slug={v.slug} acceptsGithubLink={v.acceptsGithubLink} siteKey={turnstileSiteKey()} />
               ) : user ? (
                 <p className={`m-0 text-sm ${muted}`}>Откликаться могут только аккаунты соискателей. Вы вошли как работодатель.</p>
               ) : null}

@@ -6,7 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { StatusBadge } from "@/components/employer-shell";
 import { GRADE_LABEL, WORK_FORMAT_LABEL, EMPLOYMENT_LABEL, formatSalary, formatDate, plural } from "@/lib/labels";
-import { moderateAction } from "./actions";
+import { moderateAction, resolveReportAction } from "./actions";
 
 export const metadata: Metadata = { title: "Модерация" };
 
@@ -29,13 +29,19 @@ export default async function AdminPage() {
   const user = await requireRole("ADMIN", "/admin");
   if (user.role !== "ADMIN") return null;
 
-  const [queue, counts] = await Promise.all([
+  const [queue, counts, reports] = await Promise.all([
     db.vacancy.findMany({
       where: { status: "MODERATION" },
       orderBy: { updatedAt: "asc" },
       include: { company: { select: { name: true, slug: true } }, author: { select: { email: true } }, skills: { orderBy: { order: "asc" }, include: { skill: true } } },
     }),
     db.vacancy.groupBy({ by: ["status"], _count: { _all: true } }),
+    db.report.findMany({
+      where: { status: "OPEN" },
+      orderBy: { createdAt: "asc" },
+      include: { vacancy: { select: { id: true, slug: true, title: true, status: true, company: { select: { name: true } } } } },
+      take: 50,
+    }),
   ]);
   const count = Object.fromEntries(counts.map((c) => [c.status, c._count._all])) as Record<string, number>;
 
@@ -106,6 +112,13 @@ export default async function AdminPage() {
 
                 <form action={moderateAction} className="flex flex-wrap items-center gap-3 border-t border-[color:var(--soft-dark)] pt-5">
                   <input type="hidden" name="id" value={v.id} />
+                  <input
+                    type="text"
+                    name="comment"
+                    placeholder="Причина отклонения (работодатель увидит её в письме и в редакторе)"
+                    className="neu-field order-first w-full"
+                    style={{ minHeight: 44, fontSize: 14 }}
+                  />
                   <button
                     type="submit"
                     name="decision"
@@ -130,6 +143,41 @@ export default async function AdminPage() {
             ))}
           </div>
         )}
+
+        <section className="flex flex-col gap-4 pt-4">
+          <h2 className="m-0 text-xl font-extrabold">Жалобы {reports.length ? `(${reports.length})` : ""}</h2>
+          {reports.length === 0 ? (
+            <div className="neu-card-sm p-6 text-sm text-[color:var(--soft-muted)]">Открытых жалоб нет.</div>
+          ) : (
+            reports.map((r) => (
+              <article key={r.id} className="neu-card-sm flex flex-wrap items-start gap-4 p-5">
+                <div className="flex min-w-0 flex-[1_1_360px] flex-col gap-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link href={`/vacancies/${r.vacancy.slug}`} className="text-[16px] font-extrabold text-[color:var(--soft-text)] hover:text-[color:var(--soft-blue)]">
+                      {r.vacancy.title}
+                    </Link>
+                    <StatusBadge status={r.vacancy.status} />
+                  </div>
+                  <span className="text-[13px] text-[color:var(--soft-muted)]">
+                    {r.vacancy.company.name} · {formatDate(r.createdAt)} · {r.email ?? "аноним"}
+                  </span>
+                  <p className="m-0 mt-1 text-sm font-semibold">{r.reason}</p>
+                  {r.comment ? <p className="m-0 whitespace-pre-line text-sm text-[color:var(--soft-text)]">{r.comment}</p> : null}
+                </div>
+                <form action={resolveReportAction} className="flex flex-wrap items-center gap-2">
+                  <input type="hidden" name="id" value={r.id} />
+                  <input type="hidden" name="vacancyId" value={r.vacancy.id} />
+                  <button type="submit" name="decision" value="archive" className="neu-btn-sm" style={{ minHeight: 40, fontSize: 13 }}>
+                    Снять вакансию
+                  </button>
+                  <button type="submit" name="decision" value="dismiss" className="neu-btn-sm" style={{ minHeight: 40, fontSize: 13 }}>
+                    Отклонить жалобу
+                  </button>
+                </form>
+              </article>
+            ))
+          )}
+        </section>
       </main>
       <SiteFooter compact />
     </>
