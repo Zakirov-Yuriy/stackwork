@@ -65,6 +65,7 @@ async function readToken(authorization?: string | null): Promise<string | null> 
 export const currentUserSelect = {
   id: true,
   email: true,
+  emailVerifiedAt: true,
   name: true,
   role: true,
   companyId: true,

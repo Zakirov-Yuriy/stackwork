@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { logoutAction } from "@/app/(auth)/actions";
 import type { CurrentUser } from "@/lib/session";
+import { MobileMenu } from "./mobile-menu";
 
 /** Шапка кабинета работодателя: своё меню и бейдж «для работодателей». */
 export function EmployerHeader({ user, active }: { user: CurrentUser; active: "vacancies" | "responses" | "company" | "billing" }) {
@@ -19,13 +20,14 @@ export function EmployerHeader({ user, active }: { user: CurrentUser; active: "v
           <span>stackwork</span>
           <span className="neu-inset rounded-lg px-2.5 py-1 text-xs font-semibold tracking-[0.04em] text-[color:var(--soft-muted)]">для работодателей</span>
         </Link>
-        <nav aria-label="Меню кабинета" className="neu-tabs flex flex-wrap gap-1" style={{ padding: 4, borderRadius: 14 }}>
+        <MobileMenu>
+        <nav aria-label="Меню кабинета" className="neu-tabs flex flex-wrap gap-1 self-start" style={{ padding: 4, borderRadius: 14 }}>
           {item("vacancies", "/employer", "Мои вакансии")}
           {item("responses", "/employer/responses", "Отклики")}
           {item("company", "/employer/company", "Компания")}
           {item("billing", "/employer/billing", "Тариф")}
         </nav>
-        <div className="ml-auto flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 md:ml-auto">
           <span className="inline-flex min-h-11 items-center gap-2.5 text-sm font-semibold text-[color:var(--soft-text)]">
             <span aria-hidden="true" className="chip-blue inline-flex h-8 w-8 items-center justify-center rounded-lg text-[13px] font-extrabold">
               {user.company?.initials ?? "?"}
@@ -41,6 +43,7 @@ export function EmployerHeader({ user, active }: { user: CurrentUser; active: "v
             </button>
           </form>
         </div>
+        </MobileMenu>
       </div>
     </header>
   );

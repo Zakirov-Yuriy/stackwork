@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
 import { logoutAction } from "@/app/(auth)/actions";
+import { MobileMenu } from "./mobile-menu";
 
 const navLink = "text-[color:var(--soft-muted)] hover:text-[color:var(--soft-text)]";
 
@@ -17,44 +18,47 @@ export async function SiteHeader() {
           </span>
           <span>stackwork</span>
         </Link>
-        <nav aria-label="Основное меню" className="flex flex-wrap gap-6 text-[15px] font-semibold">
-          <Link href="/" className={navLink}>
-            Вакансии
-          </Link>
-          <Link href="/companies" className={navLink}>
-            Компании
-          </Link>
-          <Link href="/salaries" className={navLink}>
-            Зарплаты по стеку
-          </Link>
-          <Link href="/employer" className={navLink}>
-            Работодателям
-          </Link>
-        </nav>
-        <div className="ml-auto flex flex-wrap items-center gap-3">
-          {user ? (
-            <>
-              <Link href={cabinet} className="neu-btn-sm">
-                {user.role === "EMPLOYER" ? (user.company?.name ?? "Кабинет") : user.role === "ADMIN" ? "Модерация" : "Мои отклики"}
-              </Link>
-              <span className="text-sm font-semibold text-[color:var(--soft-muted)]">{user.name ?? user.email}</span>
-              <form action={logoutAction}>
-                <button type="submit" className="neu-btn-sm">
-                  Выйти
-                </button>
-              </form>
-            </>
-          ) : (
-            <>
-              <Link href="/register?role=employer" className="neu-btn-sm">
-                Разместить вакансию
-              </Link>
-              <Link href="/login" className="neu-primary-sm">
-                Войти
-              </Link>
-            </>
-          )}
-        </div>
+
+        <MobileMenu>
+          <nav aria-label="Основное меню" className="flex flex-col gap-3 text-[15px] font-semibold md:flex-row md:flex-wrap md:gap-6">
+            <Link href="/" className={navLink}>
+              Вакансии
+            </Link>
+            <Link href="/companies" className={navLink}>
+              Компании
+            </Link>
+            <Link href="/salaries" className={navLink}>
+              Зарплаты по стеку
+            </Link>
+            <Link href="/employer" className={navLink}>
+              Работодателям
+            </Link>
+          </nav>
+          <div className="flex flex-wrap items-center gap-3 md:ml-auto">
+            {user ? (
+              <>
+                <Link href={cabinet} className="neu-btn-sm">
+                  {user.role === "EMPLOYER" ? (user.company?.name ?? "Кабинет") : user.role === "ADMIN" ? "Модерация" : "Мои отклики"}
+                </Link>
+                <span className="text-sm font-semibold text-[color:var(--soft-muted)]">{user.name ?? user.email}</span>
+                <form action={logoutAction}>
+                  <button type="submit" className="neu-btn-sm">
+                    Выйти
+                  </button>
+                </form>
+              </>
+            ) : (
+              <>
+                <Link href="/register?role=employer" className="neu-btn-sm">
+                  Разместить вакансию
+                </Link>
+                <Link href="/login" className="neu-primary-sm">
+                  Войти
+                </Link>
+              </>
+            )}
+          </div>
+        </MobileMenu>
       </div>
     </header>
   );

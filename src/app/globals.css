@@ -28,6 +28,7 @@ body {
   --soft-blue-2: #5a8df2;
 }
 
+@layer components {
 .soft-page {
   background: var(--soft-bg);
   color: var(--soft-text);
@@ -362,4 +363,6 @@ a.neu-chip:hover {
   outline: 3px solid rgba(59, 111, 217, 0.25);
   outline-offset: 2px;
 }
+}
+
 

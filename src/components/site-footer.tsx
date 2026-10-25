@@ -52,8 +52,8 @@ export function SiteFooter({ compact = false }: { compact?: boolean }) {
           <Link href="/" className={linkCls}>
             Вакансии
           </Link>
-          <Link href="/resume" className={linkCls}>
-            Создать резюме
+          <Link href="/me" className={linkCls}>
+            Мои отклики
           </Link>
           <Link href="/salaries" className={linkCls}>
             Зарплаты по стеку

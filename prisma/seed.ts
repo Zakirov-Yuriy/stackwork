@@ -327,8 +327,8 @@ async function main() {
     const companyId = u.company ? companyBySlug.get(u.company) : undefined;
     await db.user.upsert({
       where: { email: u.email },
-      update: { name: u.name, role: u.role, companyId: companyId ?? null },
-      create: { email: u.email, name: u.name, role: u.role, passwordHash, companyId: companyId ?? null },
+      update: { name: u.name, role: u.role, companyId: companyId ?? null, emailVerifiedAt: new Date() },
+      create: { email: u.email, name: u.name, role: u.role, passwordHash, companyId: companyId ?? null, emailVerifiedAt: new Date() },
     });
   }
 

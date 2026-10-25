@@ -2,11 +2,12 @@
 
 import { useActionState } from "react";
 import { applyAction, type ApplyState } from "./actions";
+import { Turnstile } from "@/components/turnstile";
 
 const label = "text-sm font-bold text-[color:var(--soft-text)]";
 const hint = "text-xs text-[color:var(--soft-muted)]";
 
-export function ApplyForm({ slug, acceptsGithubLink }: { slug: string; acceptsGithubLink: boolean }) {
+export function ApplyForm({ slug, acceptsGithubLink, siteKey }: { slug: string; acceptsGithubLink: boolean; siteKey: string }) {
   const [state, action, pending] = useActionState<ApplyState, FormData>(applyAction, undefined);
 
   if (state?.success) {
@@ -50,6 +51,7 @@ export function ApplyForm({ slug, acceptsGithubLink }: { slug: string; acceptsGi
         <textarea id="coverLetter" name="coverLetter" rows={4} className="neu-field py-3 leading-relaxed" style={{ minHeight: 0 }} />
         <span className={hint}>Чем занимались, почему эта вакансия. Необязательно.</span>
       </div>
+      <Turnstile siteKey={siteKey} />
       <div>
         <button type="submit" disabled={pending} className="neu-primary-sm" style={{ minHeight: 48, padding: "0 24px", fontSize: 15 }}>
           {pending ? "Отправляем…" : "Отправить отклик"}

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { VacancyCard as VacancyCardData } from "@/lib/vacancies";
 import { GRADE_LABEL, WORK_FORMAT_SHORT, formatSalary, formatRelative, formatLocation } from "@/lib/labels";
-import { BookmarkIcon } from "./icons";
+import { SaveButton } from "./save-button";
 
 export function Chip({ children, dark = false }: { children: React.ReactNode; dark?: boolean }) {
   return <span className={dark ? "chip-blue" : "chip-flat"}>{children}</span>;
@@ -18,7 +18,7 @@ export function SkillTag({ children, href }: { children: React.ReactNode; href?:
   return <span className="neu-chip">{children}</span>;
 }
 
-export function VacancyCard({ vacancy, now }: { vacancy: VacancyCardData; now: Date }) {
+export function VacancyCard({ vacancy, now, saved = false, back = "/" }: { vacancy: VacancyCardData; now: Date; saved?: boolean; back?: string }) {
   const href = `/vacancies/${vacancy.slug}`;
   return (
     <article className="neu-card-sm flex flex-col gap-3.5 px-6 py-5">
@@ -50,9 +50,7 @@ export function VacancyCard({ vacancy, now }: { vacancy: VacancyCardData; now: D
         <Link href={`${href}#respond`} className="neu-primary-sm">
           Откликнуться
         </Link>
-        <button type="button" aria-label="Сохранить вакансию" className="neu-btn-sm h-11 w-11 px-0">
-          <BookmarkIcon />
-        </button>
+        <SaveButton vacancyId={vacancy.id} saved={saved} back={back} />
         <span className="ml-auto text-[13px] text-[color:var(--soft-muted)]">{vacancy.publishedAt ? formatRelative(vacancy.publishedAt, now) : ""}</span>
       </div>
     </article>

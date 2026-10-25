@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Skill } from "@/generated/prisma/client";
 import type { VacancyFilters } from "@/lib/vacancies";
 import { formatVacancyCount } from "@/lib/labels";
+import { Collapsible } from "./mobile-menu";
 
 type Facets = {
   format: { REMOTE: number; HYBRID: number; OFFICE: number };
@@ -42,8 +43,12 @@ export function FiltersSidebar({ filters, facets, skills, total }: { filters: Va
   const emp = new Set(filters.employment ?? []);
   const sk = new Set(filters.skills ?? []);
 
+  const activeCount = fmt.size + grd.size + emp.size + sk.size + (filters.experience ? 1 : 0) + (filters.salaryFrom ? 1 : 0);
+
   return (
-    <aside aria-label="Фильтры" className="neu-card box-border flex max-w-[300px] flex-[1_1_260px] flex-col gap-6 p-6">
+    <aside aria-label="Фильтры" className="box-border flex w-full flex-col lg:max-w-[300px] lg:flex-[1_1_260px]">
+    <Collapsible title={activeCount ? `Фильтры (${activeCount})` : "Фильтры"}>
+    <div className="neu-card box-border flex flex-col gap-6 p-6">
       <form method="get" action="/" className="contents">
         {filters.q ? <input type="hidden" name="q" value={filters.q} /> : null}
         {filters.city ? <input type="hidden" name="city" value={filters.city} /> : null}
@@ -121,6 +126,8 @@ export function FiltersSidebar({ filters, facets, skills, total }: { filters: Va
           Показать {formatVacancyCount(total)}
         </button>
       </form>
+    </div>
+    </Collapsible>
     </aside>
   );
 }

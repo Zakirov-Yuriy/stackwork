@@ -5,6 +5,8 @@ import { VacancyCard } from "@/components/vacancy-card";
 import { FiltersSidebar } from "@/components/filters-sidebar";
 import { SearchIcon, PinIcon, ChevronRightIcon } from "@/components/icons";
 import { searchVacancies, facetCounts, popularSkills, parseFilters } from "@/lib/vacancies";
+import { savedIdsFor } from "@/lib/saved";
+import { getCurrentUser } from "@/lib/session";
 import { formatVacancyCount, GRADE_LABEL, WORK_FORMAT_SHORT, EXPERIENCE_LABEL } from "@/lib/labels";
 
 const POPULAR_CHIPS = [
@@ -34,7 +36,10 @@ export default async function HomePage(props: PageProps<"/">) {
   const filters = parseFilters(raw);
   const now = new Date();
 
+  const user = await getCurrentUser();
   const [result, facets, skills] = await Promise.all([searchVacancies(filters), facetCounts(), popularSkills(9)]);
+  const saved = await savedIdsFor(user?.id, result.items.map((v) => v.id));
+  const back = buildQuery(raw, {});
 
   const summary = [
     ...(filters.skills ?? []).map((s) => skills.find((x) => x.slug === s)?.name ?? s),
@@ -120,7 +125,7 @@ export default async function HomePage(props: PageProps<"/">) {
               </Link>
             </div>
           ) : (
-            result.items.map((v) => <VacancyCard key={v.id} vacancy={v} now={now} />)
+            result.items.map((v) => <VacancyCard key={v.id} vacancy={v} now={now} saved={saved.has(v.id)} back={back} />)
           )}
 
           {result.pages > 1 ? (

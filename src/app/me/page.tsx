@@ -5,6 +5,9 @@ import { requireUser } from "@/lib/guards";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { APPLICATION_STATUS_LABEL, formatSalary, formatDate, formatLocation, plural } from "@/lib/labels";
+import { VerifyBanner } from "@/components/verify-banner";
+import { SuccessBanner } from "@/components/form";
+import { MeTabs } from "./me-tabs";
 
 export const metadata: Metadata = { title: "Мои отклики" };
 
@@ -16,8 +19,9 @@ const STATUS_CLS: Record<string, string> = {
   REJECTED: "bg-[#FBEDED] text-[#8A1F1F]",
 };
 
-export default async function MePage() {
+export default async function MePage(props: PageProps<"/me">) {
   const user = await requireUser("/me");
+  const sp = await props.searchParams;
   const applications =
     user.role === "CANDIDATE"
       ? await db.application.findMany({
@@ -31,12 +35,15 @@ export default async function MePage() {
     <>
       <SiteHeader />
       <main className="mx-auto box-border flex w-full max-w-[1180px] flex-1 flex-col gap-6 px-6 pb-12 pt-8">
+        <VerifyBanner user={user} what="нельзя откликаться на вакансии" />
+        <SuccessBanner message={sp.verify === "ok" ? "Почта подтверждена." : sp.reset === "1" ? "Пароль изменён." : undefined} />
         <div className="flex flex-col gap-1.5">
           <h1 className="m-0 text-[30px] font-extrabold leading-tight tracking-tight">Мои отклики</h1>
           <p className="m-0 text-[15px] text-[color:var(--soft-muted)]">
             {user.name ?? user.email} · {applications.length} {plural(applications.length, "отклик", "отклика", "откликов")}
           </p>
         </div>
+        {user.role === "CANDIDATE" ? <MeTabs active="applications" /> : null}
 
         {user.role !== "CANDIDATE" ? (
           <div className="neu-card-sm p-8">

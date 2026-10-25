@@ -57,7 +57,7 @@ export default async function EditVacancyPage(props: PageProps<"/employer/vacanc
               : v.status === "MODERATION"
                 ? "Вакансия на модерации. Можно продолжать редактировать, на проверку уйдёт последняя версия."
                 : v.status === "REJECTED"
-                  ? "Модерация отклонила вакансию. Поправьте и отправьте снова."
+                  ? `Модерация отклонила вакансию${v.moderationComment ? `: ${v.moderationComment}` : ""}. Поправьте и отправьте снова.`
                   : "Черновик. Виден только вам."}
           </p>
         </div>

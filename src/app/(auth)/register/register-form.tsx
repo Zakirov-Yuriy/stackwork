@@ -5,10 +5,11 @@ import { useActionState, useState } from "react";
 import { registerAction, type AuthState } from "../actions";
 import { SoftLabel, SoftError } from "../auth-card";
 import { ArrowIcon } from "../login/login-form";
+import { Turnstile } from "@/components/turnstile";
 
 type Role = "CANDIDATE" | "EMPLOYER";
 
-export function RegisterForm({ next, initialRole }: { next: string; initialRole: Role }) {
+export function RegisterForm({ next, initialRole, siteKey }: { next: string; initialRole: Role; siteKey: string }) {
   const [state, action, pending] = useActionState<AuthState, FormData>(registerAction, undefined);
   const [role, setRole] = useState<Role>((state?.fields?.role as Role) ?? initialRole);
   const f = state?.fields ?? {};
@@ -67,6 +68,8 @@ export function RegisterForm({ next, initialRole }: { next: string; initialRole:
           .
         </span>
       </label>
+
+      <Turnstile siteKey={siteKey} />
 
       <button type="submit" disabled={pending} className="neu-primary mt-1 inline-flex items-center justify-center gap-2">
         {pending ? "Создаём аккаунт…" : "Создать аккаунт"}

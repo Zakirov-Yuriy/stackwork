@@ -5,6 +5,7 @@ import { requireEmployer } from "@/lib/guards";
 import { EmployerHeader, StatusBadge } from "@/components/employer-shell";
 import { SiteFooter } from "@/components/site-footer";
 import { SuccessBanner } from "@/components/form";
+import { VerifyBanner } from "@/components/verify-banner";
 import { formatSalary, formatDate, plural } from "@/lib/labels";
 import { GRADE_LABEL, WORK_FORMAT_SHORT } from "@/lib/labels";
 import { archiveVacancyAction } from "./actions";
@@ -28,7 +29,12 @@ export default async function EmployerHome(props: PageProps<"/employer">) {
     <>
       <EmployerHeader user={user} active="vacancies" />
       <main className="mx-auto box-border flex w-full max-w-[1180px] flex-1 flex-col gap-6 px-6 pb-12 pt-8">
-        <SuccessBanner message={sp.sent ? "Вакансия отправлена на модерацию. Обычно это занимает до одного рабочего дня." : undefined} />
+        <VerifyBanner user={user} what="вакансии не уйдут на модерацию" />
+        <SuccessBanner
+          message={
+            sp.sent ? "Вакансия отправлена на модерацию. Обычно это занимает до одного рабочего дня." : sp.verify === "ok" ? "Почта подтверждена." : sp.reset === "1" ? "Пароль изменён." : undefined
+          }
+        />
 
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-col gap-1.5">
@@ -85,7 +91,10 @@ export default async function EmployerHome(props: PageProps<"/employer">) {
                   <Link href={`/employer/vacancies/${v.id}/applications`} className="soft-link">
                     {v._count.applications} {plural(v._count.applications, "отклик", "отклика", "откликов")}
                   </Link>
-                  <span>{v.publishedAt ? `с ${formatDate(v.publishedAt)}` : `изменена ${formatDate(v.updatedAt)}`}</span>
+                  <span>
+                    {v.publishedAt ? `с ${formatDate(v.publishedAt)}` : `изменена ${formatDate(v.updatedAt)}`}
+                    {v.status === "PUBLISHED" ? ` · ${v.views} ${plural(v.views, "просмотр", "просмотра", "просмотров")}` : ""}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   {v.status === "PUBLISHED" ? (
