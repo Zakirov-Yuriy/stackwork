@@ -33,7 +33,8 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
     return { error: "Неверная почта или пароль", fields: { email } };
   }
 
-  await setSessionCookie({ sub: user.id, role: user.role });
+  // «Запомнить меня»: cookie на 30 дней, иначе до закрытия браузера
+  await setSessionCookie({ sub: user.id, role: user.role }, { persistent: formData.get("remember") === "on" });
   redirect(next === "/" ? homeFor(user.role) : next);
 }
 
@@ -43,6 +44,7 @@ export async function registerAction(_prev: AuthState, formData: FormData): Prom
     .trim()
     .toLowerCase();
   const password = String(formData.get("password") ?? "");
+  const passwordConfirm = String(formData.get("passwordConfirm") ?? "");
   const role = formData.get("role") === "EMPLOYER" ? "EMPLOYER" : "CANDIDATE";
   const companyName = String(formData.get("companyName") ?? "").trim();
   const consent = formData.get("consent") === "on";
@@ -52,6 +54,7 @@ export async function registerAction(_prev: AuthState, formData: FormData): Prom
   if (name.length < 2) return { error: "Укажите имя", fields };
   if (!EMAIL_RE.test(email)) return { error: "Проверьте адрес почты", fields };
   if (password.length < 8) return { error: "Пароль не короче 8 символов", fields };
+  if (password !== passwordConfirm) return { error: "Пароли не совпадают", fields };
   if (role === "EMPLOYER" && companyName.length < 2) return { error: "Укажите название компании", fields };
   if (!consent) return { error: "Нужно согласие на обработку персональных данных", fields };
 

@@ -46,6 +46,177 @@ body {
   font-family: var(--font-sans);
 }
 
+/* ───────────── Soft UI (неоморфизм) для страниц входа и регистрации ───────────── */
+:root {
+  --soft-bg: #e8ebf0;
+  --soft-bg-raised: #f1f3f7;
+  --soft-dark: #c6cbd4; /* тень снизу-справа */
+  --soft-light: #ffffff; /* блик сверху-слева */
+  --soft-text: #2b3140;
+  --soft-muted: #6b7280;
+  --soft-blue: #3b6fd9;
+  --soft-blue-2: #5a8df2;
+}
+
+.soft-page {
+  background: var(--soft-bg);
+  color: var(--soft-text);
+}
+.neu-card {
+  background: var(--soft-bg);
+  border-radius: 28px;
+  box-shadow:
+    14px 14px 32px var(--soft-dark),
+    -14px -14px 32px var(--soft-light);
+}
+.neu-raised {
+  background: var(--soft-bg);
+  box-shadow:
+    6px 6px 14px var(--soft-dark),
+    -6px -6px 14px var(--soft-light);
+}
+.neu-inset {
+  background: var(--soft-bg);
+  box-shadow:
+    inset 5px 5px 10px var(--soft-dark),
+    inset -5px -5px 10px var(--soft-light);
+}
+.neu-field {
+  background: var(--soft-bg);
+  color: var(--soft-text);
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  min-height: 52px;
+  padding: 0 18px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 15px;
+  outline: none;
+  box-shadow:
+    inset 5px 5px 10px var(--soft-dark),
+    inset -5px -5px 10px var(--soft-light);
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.neu-field::placeholder {
+  color: #9aa1ad;
+}
+.neu-field:focus {
+  border-color: #a9c1f5;
+  box-shadow:
+    inset 5px 5px 10px var(--soft-dark),
+    inset -5px -5px 10px var(--soft-light),
+    0 0 0 4px rgba(59, 111, 217, 0.12);
+}
+.neu-primary {
+  background: linear-gradient(135deg, var(--soft-blue-2) 0%, #2d62d0 100%);
+  color: #fff;
+  border: 0;
+  border-radius: 14px;
+  min-height: 56px;
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow:
+    6px 6px 14px var(--soft-dark),
+    -6px -6px 14px var(--soft-light),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: transform 0.1s, filter 0.15s, box-shadow 0.15s;
+}
+.neu-primary:hover {
+  filter: brightness(1.06);
+}
+.neu-primary:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 4px 4px 10px rgba(0, 0, 0, 0.25),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.1);
+}
+.neu-primary:disabled {
+  opacity: 0.6;
+  filter: none;
+}
+.neu-btn {
+  background: var(--soft-bg);
+  color: var(--soft-text);
+  border: 0;
+  border-radius: 14px;
+  min-height: 52px;
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow:
+    6px 6px 14px var(--soft-dark),
+    -6px -6px 14px var(--soft-light);
+  transition: box-shadow 0.15s, transform 0.1s;
+}
+.neu-btn:hover {
+  box-shadow:
+    8px 8px 18px var(--soft-dark),
+    -8px -8px 18px var(--soft-light);
+}
+.neu-btn:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 4px 4px 10px var(--soft-dark),
+    inset -4px -4px 10px var(--soft-light);
+}
+.neu-btn:disabled {
+  opacity: 0.55;
+  transform: none;
+}
+.neu-tabs {
+  background: var(--soft-bg);
+  border-radius: 16px;
+  padding: 6px;
+  box-shadow:
+    inset 5px 5px 10px var(--soft-dark),
+    inset -5px -5px 10px var(--soft-light);
+}
+.neu-tab {
+  color: var(--soft-muted);
+  border-radius: 12px;
+  min-height: 48px;
+  font-weight: 700;
+  font-size: 16px;
+  transition: color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.neu-tab[aria-current="page"],
+.neu-tab[data-active="true"] {
+  background: var(--soft-bg-raised);
+  color: var(--soft-blue);
+  box-shadow:
+    4px 4px 10px var(--soft-dark),
+    -4px -4px 10px var(--soft-light);
+}
+.neu-check {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: var(--soft-bg);
+  box-shadow:
+    inset 3px 3px 6px var(--soft-dark),
+    inset -3px -3px 6px var(--soft-light);
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+  flex: none;
+}
+.neu-check::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  background: var(--soft-blue);
+  transform: scale(0);
+  transition: transform 0.12s;
+}
+.neu-check:checked::before {
+  transform: scale(1);
+}
+.neu-check:focus-visible {
+  outline: 3px solid rgba(59, 111, 217, 0.25);
+  outline-offset: 2px;
+}
+
 /* Пилюли-чекбоксы для стека: input скрыт, выбранное состояние через :has */
 .tag-pill input {
   position: absolute;
