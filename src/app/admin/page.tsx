@@ -11,7 +11,7 @@ import { moderateAction } from "./actions";
 export const metadata: Metadata = { title: "Модерация" };
 
 function Lines({ text }: { text: string | null }) {
-  if (!text) return <span className="text-muted-2">пусто</span>;
+  if (!text) return <span className="text-[color:var(--soft-muted)]">пусто</span>;
   return (
     <ul className="m-0 flex list-disc flex-col gap-0.5 pl-5">
       {text
@@ -45,28 +45,28 @@ export default async function AdminPage() {
       <main className="mx-auto box-border flex w-full max-w-[1180px] flex-1 flex-col gap-6 px-6 pb-12 pt-8">
         <div className="flex flex-col gap-1.5">
           <h1 className="m-0 text-[30px] font-extrabold leading-tight tracking-tight">Модерация</h1>
-          <p className="m-0 text-[15px] text-muted">
+          <p className="m-0 text-[15px] text-[color:var(--soft-muted)]">
             В очереди {queue.length} {plural(queue.length, "вакансия", "вакансии", "вакансий")} · опубликовано {count.PUBLISHED ?? 0} · черновиков{" "}
             {count.DRAFT ?? 0} · отклонено {count.REJECTED ?? 0}
           </p>
         </div>
 
         {queue.length === 0 ? (
-          <div className="rounded-xl border border-line bg-card p-8">
+          <div className="neu-card-sm p-8">
             <p className="m-0 text-lg font-extrabold">Очередь пуста</p>
-            <p className="m-0 mt-1 text-sm text-muted">Новые вакансии на модерацию появятся здесь.</p>
+            <p className="m-0 mt-1 text-sm text-[color:var(--soft-muted)]">Новые вакансии на модерацию появятся здесь.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
             {queue.map((v) => (
-              <article key={v.id} className="flex flex-col gap-4 rounded-xl border border-line bg-card p-6">
+              <article key={v.id} className="flex flex-col gap-4 neu-card-sm p-6">
                 <div className="flex flex-wrap items-start gap-3">
                   <div className="flex min-w-0 flex-[1_1_360px] flex-col gap-1">
                     <div className="flex flex-wrap items-center gap-2.5">
                       <h2 className="m-0 text-xl font-extrabold leading-snug">{v.title}</h2>
                       <StatusBadge status={v.status} />
                     </div>
-                    <span className="text-sm text-muted">
+                    <span className="text-sm text-[color:var(--soft-muted)]">
                       {v.company.name} · {v.author?.email ?? "автор неизвестен"} · отправлена {formatDate(v.updatedAt)}
                     </span>
                   </div>
@@ -74,12 +74,12 @@ export default async function AdminPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2 text-xs font-bold">
-                  <span className="rounded-md bg-ink px-2.5 py-1 text-white">{GRADE_LABEL[v.grade]}</span>
-                  <span className="rounded-md bg-soft px-2.5 py-1 text-ink-2">{WORK_FORMAT_LABEL[v.workFormat]}</span>
-                  <span className="rounded-md bg-soft px-2.5 py-1 text-ink-2">{EMPLOYMENT_LABEL[v.employment]}</span>
-                  {v.city ? <span className="rounded-md bg-soft px-2.5 py-1 text-ink-2">{v.city}</span> : null}
+                  <span className="chip-blue">{GRADE_LABEL[v.grade]}</span>
+                  <span className="chip-flat">{WORK_FORMAT_LABEL[v.workFormat]}</span>
+                  <span className="chip-flat">{EMPLOYMENT_LABEL[v.employment]}</span>
+                  {v.city ? <span className="chip-flat">{v.city}</span> : null}
                   {v.skills.map((s) => (
-                    <span key={s.skillId} className="rounded-full border border-line px-2.5 py-1 font-mono font-medium text-ink-2">
+                    <span key={s.skillId} className="neu-chip">
                       {s.skill.name}
                     </span>
                   ))}
@@ -88,7 +88,7 @@ export default async function AdminPage() {
                 <div className="grid gap-4 text-sm leading-relaxed sm:grid-cols-2">
                   <div className="flex flex-col gap-1">
                     <strong>О команде</strong>
-                    <p className="m-0 whitespace-pre-line">{v.aboutTeam ?? <span className="text-muted-2">пусто</span>}</p>
+                    <p className="m-0 whitespace-pre-line">{v.aboutTeam ?? <span className="text-[color:var(--soft-muted)]">пусто</span>}</p>
                   </div>
                   <div className="flex flex-col gap-1">
                     <strong>Чем предстоит заниматься</strong>
@@ -104,13 +104,13 @@ export default async function AdminPage() {
                   </div>
                 </div>
 
-                <form action={moderateAction} className="flex flex-wrap items-center gap-3 border-t border-line pt-4">
+                <form action={moderateAction} className="flex flex-wrap items-center gap-3 border-t border-[color:var(--soft-dark)] pt-5">
                   <input type="hidden" name="id" value={v.id} />
                   <button
                     type="submit"
                     name="decision"
                     value="approve"
-                    className="inline-flex min-h-11 items-center rounded-lg bg-accent px-5 text-sm font-extrabold text-ink hover:brightness-95"
+                    className="neu-primary-sm"
                   >
                     Опубликовать
                   </button>
@@ -118,11 +118,11 @@ export default async function AdminPage() {
                     type="submit"
                     name="decision"
                     value="reject"
-                    className="inline-flex min-h-11 items-center rounded-lg border border-line-2 px-4 text-sm font-bold text-ink hover:border-ink"
+                    className="neu-btn-sm"
                   >
                     Отклонить
                   </button>
-                  <Link href={`/employer/vacancies/${v.id}/edit`} className="ml-auto text-sm font-semibold text-link hover:text-ink">
+                  <Link href={`/employer/vacancies/${v.id}/edit`} className="ml-auto text-sm soft-link">
                     Открыть в редакторе
                   </Link>
                 </form>

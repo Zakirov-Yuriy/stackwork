@@ -101,7 +101,7 @@ export function FiltersSidebar({ filters, facets, skills, total }: { filters: Va
             <legend className={legendCls.replace("mb-2.5 ", "")}>Стек</legend>
             <div className="flex flex-wrap gap-2.5 py-1">
               {skills.map((s) => (
-                <label key={s.id} className="neu-pill">
+                <label key={s.id} className="neu-pill font-mono">
                   <input type="checkbox" name="skills" value={s.slug} defaultChecked={sk.has(s.slug)} />
                   <span>{s.name}</span>
                 </label>

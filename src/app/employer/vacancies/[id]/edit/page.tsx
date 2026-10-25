@@ -51,7 +51,7 @@ export default async function EditVacancyPage(props: PageProps<"/employer/vacanc
             <h1 className="m-0 text-[30px] font-extrabold leading-tight tracking-tight">{v.title}</h1>
             <StatusBadge status={v.status} />
           </div>
-          <p className="m-0 text-[15px] text-muted">
+          <p className="m-0 text-[15px] text-[color:var(--soft-muted)]">
             {v.status === "PUBLISHED"
               ? "Вакансия опубликована. Правки применятся сразу после сохранения."
               : v.status === "MODERATION"
