@@ -41,8 +41,8 @@ html {
 }
 
 body {
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--soft-bg);
+  color: var(--soft-text);
   font-family: var(--font-sans);
 }
 
@@ -186,6 +186,183 @@ body {
     4px 4px 10px var(--soft-dark),
     -4px -4px 10px var(--soft-light);
 }
+/* Компактные варианты для списка вакансий и шапки */
+.neu-card-sm {
+  background: var(--soft-bg);
+  border-radius: 20px;
+  box-shadow:
+    8px 8px 18px var(--soft-dark),
+    -8px -8px 18px var(--soft-light);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+a.neu-card-sm:hover {
+  box-shadow:
+    10px 10px 22px var(--soft-dark),
+    -10px -10px 22px var(--soft-light);
+  transform: translateY(-1px);
+}
+.neu-btn-sm {
+  background: var(--soft-bg);
+  color: var(--soft-text);
+  border: 0;
+  border-radius: 12px;
+  min-height: 44px;
+  padding: 0 16px;
+  font-weight: 700;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow:
+    5px 5px 12px var(--soft-dark),
+    -5px -5px 12px var(--soft-light);
+  transition: box-shadow 0.15s, transform 0.1s, color 0.15s;
+}
+.neu-btn-sm:hover {
+  color: var(--soft-blue);
+}
+.neu-btn-sm:active,
+.neu-btn-sm[aria-current] {
+  box-shadow:
+    inset 4px 4px 9px var(--soft-dark),
+    inset -4px -4px 9px var(--soft-light);
+  color: var(--soft-blue);
+}
+.neu-primary-sm {
+  background: linear-gradient(135deg, var(--soft-blue-2) 0%, #2d62d0 100%);
+  color: #fff;
+  border: 0;
+  border-radius: 12px;
+  min-height: 44px;
+  padding: 0 18px;
+  font-weight: 800;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow:
+    5px 5px 12px var(--soft-dark),
+    -5px -5px 12px var(--soft-light),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: filter 0.15s, transform 0.1s;
+}
+.neu-primary-sm:hover {
+  filter: brightness(1.06);
+}
+.neu-primary-sm:active {
+  transform: translateY(1px);
+}
+.neu-search {
+  background: var(--soft-bg);
+  border-radius: 14px;
+  min-height: 56px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow:
+    inset 5px 5px 10px var(--soft-dark),
+    inset -5px -5px 10px var(--soft-light);
+  transition: box-shadow 0.15s;
+}
+.neu-search:focus-within {
+  box-shadow:
+    inset 5px 5px 10px var(--soft-dark),
+    inset -5px -5px 10px var(--soft-light),
+    0 0 0 4px rgba(59, 111, 217, 0.12);
+}
+.neu-search input {
+  background: transparent;
+  border: 0;
+  outline: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  color: var(--soft-text);
+}
+.neu-search input::placeholder {
+  color: #9aa1ad;
+}
+.neu-chip {
+  background: var(--soft-bg);
+  color: var(--soft-text);
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.3;
+  box-shadow:
+    inset 2px 2px 5px var(--soft-dark),
+    inset -2px -2px 5px var(--soft-light);
+}
+a.neu-chip:hover {
+  color: var(--soft-blue);
+}
+.chip-blue {
+  background: linear-gradient(135deg, var(--soft-blue-2) 0%, #2d62d0 100%);
+  color: #fff;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.chip-flat {
+  background: #dadfe7;
+  color: #3b4252;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.neu-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--soft-bg);
+  color: var(--soft-text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow:
+    4px 4px 9px var(--soft-dark),
+    -4px -4px 9px var(--soft-light);
+  transition: box-shadow 0.15s, color 0.15s;
+}
+.neu-pill input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.neu-pill:has(input:checked) {
+  color: var(--soft-blue);
+  font-weight: 600;
+  box-shadow:
+    inset 4px 4px 9px var(--soft-dark),
+    inset -4px -4px 9px var(--soft-light);
+}
+.neu-pill:has(input:focus-visible) {
+  outline: 3px solid rgba(59, 111, 217, 0.25);
+  outline-offset: 2px;
+}
+.soft-link {
+  color: var(--soft-blue);
+  font-weight: 700;
+}
+.soft-link:hover {
+  text-decoration: underline;
+}
+.soft-divider {
+  height: 1px;
+  background: var(--soft-dark);
+  opacity: 0.6;
+}
+
 .neu-check {
   appearance: none;
   width: 22px;
