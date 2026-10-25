@@ -83,7 +83,7 @@ export default async function HomePage(props: PageProps<"/">) {
           <div className="flex flex-wrap items-center gap-3">
             <span className="mr-1 text-[13px] font-semibold text-[color:var(--soft-muted)]">Популярное:</span>
             {POPULAR_CHIPS.map((c) => (
-              <Link key={c.label} href={c.href} className="neu-pill">
+              <Link key={c.label} href={c.href} className="neu-pill font-mono">
                 {c.label}
               </Link>
             ))}
