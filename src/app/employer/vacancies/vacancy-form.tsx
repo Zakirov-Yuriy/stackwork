@@ -15,7 +15,7 @@ type Props = {
   saved?: boolean;
 };
 
-const sectionCls = "flex flex-col gap-[18px] rounded-xl border border-line bg-card p-6";
+const sectionCls = "neu-card flex flex-col gap-[18px] p-7";
 const h2Cls = "m-0 text-[17px] font-extrabold";
 
 export function VacancyForm({ id, initial, companyName, status, saved }: Props) {
@@ -124,7 +124,7 @@ export function VacancyForm({ id, initial, companyName, status, saved }: Props) 
         <section className={sectionCls}>
           <div className="flex flex-col gap-1">
             <h2 className={h2Cls}>Зарплата</h2>
-            <p className="m-0 text-[13px] text-muted">Обязательное поле: вакансии без вилки на площадке не публикуются.</p>
+            <p className="m-0 text-[13px] text-[color:var(--soft-muted)]">Обязательное поле: вакансии без вилки на площадке не публикуются.</p>
           </div>
           <div className="flex flex-wrap items-end gap-3">
             <Field label="От" htmlFor="salaryFrom" className="flex-[1_1_140px]">
@@ -172,7 +172,7 @@ export function VacancyForm({ id, initial, companyName, status, saved }: Props) 
           {skills.length ? (
             <div className="flex flex-wrap gap-2">
               {skills.map((s) => (
-                <span key={s} className="inline-flex min-h-9 items-center rounded-full bg-ink px-3 font-mono text-[13px] text-white">
+                <span key={s} className="neu-chip inline-flex min-h-9 items-center text-[13px]">
                   {s}
                 </span>
               ))}
@@ -220,11 +220,11 @@ export function VacancyForm({ id, initial, companyName, status, saved }: Props) 
         <section className={sectionCls}>
           <h2 className={h2Cls}>Отклики</h2>
           <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm font-semibold">
-            <input type="checkbox" name="acceptsGithubLink" defaultChecked={initial.acceptsGithubLink} className="h-[18px] w-[18px] accent-ink" />
+            <input type="checkbox" name="acceptsGithubLink" defaultChecked={initial.acceptsGithubLink} className="neu-check" />
             <span>Принимать отклики ссылкой на GitHub без резюме</span>
           </label>
           <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm font-semibold">
-            <input type="checkbox" name="showCompanyName" defaultChecked={initial.showCompanyName} className="h-[18px] w-[18px] accent-ink" />
+            <input type="checkbox" name="showCompanyName" defaultChecked={initial.showCompanyName} className="neu-check" />
             <span>Показывать название компании в карточке</span>
           </label>
         </section>
@@ -236,7 +236,7 @@ export function VacancyForm({ id, initial, companyName, status, saved }: Props) 
           <button type="submit" name="intent" value="draft" disabled={pending} className={secondaryBtn}>
             Сохранить черновик
           </button>
-          <Link href="/employer" className="ml-1 text-sm font-bold text-link hover:text-ink">
+          <Link href="/employer" className="ml-1 text-sm soft-link">
             К списку
           </Link>
         </div>
@@ -245,20 +245,20 @@ export function VacancyForm({ id, initial, companyName, status, saved }: Props) 
       <aside className="box-border flex max-w-[360px] flex-[1_1_300px] flex-col gap-4">
         <section className="flex flex-col gap-2.5">
           <h2 className="m-0 text-[15px] font-extrabold">Так карточка выглядит в поиске</h2>
-          <div className="flex flex-col gap-2.5 rounded-xl border border-line bg-card p-[18px]">
+          <div className="flex flex-col gap-2.5 neu-card-sm p-[18px]">
             <div className="flex flex-col gap-1">
               <span className="text-base font-extrabold leading-snug">{title || "Название вакансии"}</span>
-              <span className="text-[13px] text-muted">
+              <span className="text-[13px] text-[color:var(--soft-muted)]">
                 {companyName} · {city ? `${city} · ` : ""}
                 {WORK_FORMAT_SHORT[workFormat].toLowerCase()}
               </span>
             </div>
             <span className="font-mono text-base font-semibold">{formatSalary(toNum(salaryFrom), toNum(salaryTo), currency)}</span>
             <div className="flex flex-wrap gap-1.5">
-              <span className="rounded-md bg-ink px-2.5 py-1 text-xs font-bold text-white">{GRADE_LABEL[grade]}</span>
-              <span className="rounded-md bg-soft px-2.5 py-1 text-xs font-bold text-ink-2">{WORK_FORMAT_SHORT[workFormat]}</span>
+              <span className="chip-blue">{GRADE_LABEL[grade]}</span>
+              <span className="chip-flat">{WORK_FORMAT_SHORT[workFormat]}</span>
               {skills.slice(0, 4).map((s) => (
-                <span key={s} className="rounded-full border border-line px-2.5 py-1 font-mono text-xs text-ink-2">
+                <span key={s} className="neu-chip">
                   {s}
                 </span>
               ))}
@@ -266,7 +266,7 @@ export function VacancyForm({ id, initial, companyName, status, saved }: Props) 
           </div>
         </section>
 
-        <section className="flex flex-col gap-3 rounded-xl border border-line bg-card p-5">
+        <section className="flex flex-col gap-3 neu-card-sm p-5">
           <h2 className="m-0 text-[15px] font-extrabold">Проверка перед публикацией</h2>
           <ul className="m-0 flex list-none flex-col gap-2.5 p-0 text-sm leading-snug">
             {checks.map((c) => (
@@ -279,10 +279,10 @@ export function VacancyForm({ id, initial, companyName, status, saved }: Props) 
           <p className={hintCls}>{allOk ? "Всё готово, можно отправлять." : "Черновик можно сохранить в любом виде; на модерацию уйдёт только после всех проверок."}</p>
         </section>
 
-        <section className="flex flex-col gap-2 rounded-xl bg-ink p-5 text-white">
+        <section className="neu-card-sm flex flex-col gap-2 p-5">
           <h2 className="m-0 text-[15px] font-extrabold">Тариф</h2>
-          <p className="m-0 text-sm leading-relaxed text-header-muted">[УСЛОВИЯ ТАРИФА: стоимость публикации, срок размещения, число откликов]</p>
-          <Link href="/employer/billing" className="text-sm font-bold text-white">
+          <p className="m-0 text-sm leading-relaxed text-[color:var(--soft-muted)]">[УСЛОВИЯ ТАРИФА: стоимость публикации, срок размещения, число откликов]</p>
+          <Link href="/employer/billing" className="soft-link text-sm">
             Сменить тариф
           </Link>
         </section>

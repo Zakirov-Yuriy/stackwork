@@ -1,53 +1,56 @@
 import Link from "next/link";
 import type { VacancyCard as VacancyCardData } from "@/lib/vacancies";
-import {
-  GRADE_LABEL,
-  WORK_FORMAT_SHORT,
-  SALARY_TYPE_LABEL,
-  LANGUAGE_LABEL,
-  formatSalary,
-  formatRelative,
-  formatLocation,
-  periodSuffix,
-} from "@/lib/labels";
-import { BookmarkIcon } from "./icons";
+import { GRADE_LABEL, WORK_FORMAT_SHORT, LANGUAGE_LABEL, formatSalary, formatRelative, formatLocation, periodSuffix } from "@/lib/labels";
+import { SaveButton } from "./save-button";
 import { CompanyAvatar } from "./company-avatar";
 
 export function Chip({ children, dark = false }: { children: React.ReactNode; dark?: boolean }) {
-  return (
-    <span
-      className={`rounded-md px-2.5 py-1 text-xs font-bold ${dark ? "bg-ink text-white" : "bg-soft text-ink-2"}`}
-    >
-      {children}
-    </span>
-  );
+  return <span className={dark ? "chip-blue" : "chip-flat"}>{children}</span>;
 }
 
-export function SkillTag({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-full border border-line px-2.5 py-1 font-mono text-xs text-ink-2">{children}</span>
-  );
+export function SkillTag({ children, href }: { children: React.ReactNode; href?: string }) {
+  if (href) {
+    return (
+      <Link href={href} className="neu-chip">
+        {children}
+      </Link>
+    );
+  }
+  return <span className="neu-chip">{children}</span>;
 }
 
-export function VacancyCard({ vacancy, now, from = "list" }: { vacancy: VacancyCardData; now: Date; from?: string }) {
+export function VacancyCard({
+  vacancy,
+  now,
+  saved = false,
+  back = "/",
+  from = "list",
+}: {
+  vacancy: VacancyCardData;
+  now: Date;
+  saved?: boolean;
+  back?: string;
+  /** С какого экрана открыли карточку: для статистики */
+  from?: string;
+}) {
   const href = `/vacancies/${vacancy.slug}?from=${from}`;
   const imported = vacancy.source !== "MANUAL";
   const hasSalary = Boolean(vacancy.salaryFrom || vacancy.salaryTo);
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-line bg-card px-[22px] py-5 hover:border-ink">
+    <article className="neu-card-sm flex flex-col gap-3.5 px-6 py-5">
       <div className="flex flex-wrap items-start gap-4">
-        <CompanyAvatar name={vacancy.company.name} logoUrl={vacancy.company.logoUrl} initials={vacancy.company.initials} size={48} />
-        <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-1">
-          <Link href={href} className="text-lg font-extrabold leading-snug text-ink hover:underline">
+        <CompanyAvatar name={vacancy.company.name} logoUrl={vacancy.company.logoUrl} initials={vacancy.company.initials} size={48} rounded={12} />
+        <div className="flex min-w-0 flex-[1_1_280px] flex-col gap-1">
+          <Link href={href} className="text-lg font-extrabold leading-snug text-[color:var(--soft-text)] hover:text-[color:var(--soft-blue)]">
             {vacancy.title}
           </Link>
-          <div className="text-sm text-muted">
+          <div className="text-sm text-[color:var(--soft-muted)]">
             {vacancy.company.name} · {formatLocation(vacancy.city, vacancy.workFormat, vacancy.locationNote)}
           </div>
         </div>
-        <div className="whitespace-nowrap font-mono text-[17px] font-semibold">
+        <div className="whitespace-nowrap font-mono text-[17px] font-semibold text-[color:var(--soft-text)]">
           {formatSalary(vacancy.salaryFrom, vacancy.salaryTo, vacancy.currency)}
-          <span className="font-sans text-sm font-semibold text-muted">{periodSuffix(vacancy.salaryPeriod, hasSalary)}</span>
+          <span className="font-sans text-sm font-semibold text-[color:var(--soft-muted)]">{periodSuffix(vacancy.salaryPeriod, hasSalary)}</span>
         </div>
       </div>
 
@@ -62,24 +65,12 @@ export function VacancyCard({ vacancy, now, from = "list" }: { vacancy: VacancyC
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2.5">
-        <Link
-          href={imported ? href : `${href}#respond`}
-          className="inline-flex min-h-11 items-center rounded-lg bg-accent px-[18px] text-sm font-extrabold text-ink hover:brightness-95"
-        >
+      <div className="flex flex-wrap items-center gap-2.5 pt-0.5">
+        <Link href={imported ? href : `${href}#respond`} className="neu-primary-sm">
           {imported ? "Подробнее" : "Откликнуться"}
         </Link>
-        <button
-          type="button"
-          aria-label="Сохранить вакансию"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-line-2 bg-card hover:border-ink"
-        >
-          <BookmarkIcon />
-        </button>
-        <span className="ml-auto text-[13px] text-muted-2">
-          {vacancy.publishedAt ? formatRelative(vacancy.publishedAt, now) : ""}
-        </span>
-        <span className="sr-only">{SALARY_TYPE_LABEL[vacancy.salaryType]}</span>
+        <SaveButton vacancyId={vacancy.id} saved={saved} back={back} />
+        <span className="ml-auto text-[13px] text-[color:var(--soft-muted)]">{vacancy.publishedAt ? formatRelative(vacancy.publishedAt, now) : ""}</span>
       </div>
     </article>
   );

@@ -137,3 +137,19 @@ ALTER TABLE "ImportRun" ADD CONSTRAINT "ImportRun_triggeredBy_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "PageView" ADD CONSTRAINT "PageView_vacancyId_fkey" FOREIGN KEY ("vacancyId") REFERENCES "Vacancy"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Полнотекстовый индекс пересобираем, чтобы искать и по описаниям импортированных
+-- вакансий (descriptionHtml без тегов). Генерируемую колонку нельзя изменить, только пересоздать.
+ALTER TABLE "Vacancy" DROP COLUMN "search";
+ALTER TABLE "Vacancy" ADD COLUMN "search" tsvector
+  GENERATED ALWAYS AS (
+    setweight(to_tsvector('russian', coalesce("title", '')), 'A') ||
+    setweight(to_tsvector('russian', coalesce("direction", '') || ' ' || coalesce("city", '') || ' ' || coalesce("locationNote", '')), 'B') ||
+    setweight(to_tsvector('russian',
+      coalesce("aboutTeam", '') || ' ' || coalesce("responsibilities", '') || ' ' ||
+      coalesce("requirements", '') || ' ' || coalesce("niceToHave", '') || ' ' || coalesce("conditions", '') || ' ' ||
+      regexp_replace(coalesce("descriptionHtml", ''), '<[^>]+>', ' ', 'g')
+    ), 'C')
+  ) STORED;
+
+CREATE INDEX "Vacancy_search_idx" ON "Vacancy" USING GIN ("search");

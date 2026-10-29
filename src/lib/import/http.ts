@@ -2,7 +2,7 @@ import "server-only";
 
 /** User-Agent для источников: они просят представляться и давать контакт. */
 export function userAgent() {
-  const site = process.env.SITE_URL ?? "https://stackwork.local";
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.SITE_URL ?? "https://stackwork.local";
   const contact = process.env.CONTACT_EMAIL ?? "";
   return `Stackwork/1.0 (+${site}${contact ? `; ${contact}` : ""})`;
 }

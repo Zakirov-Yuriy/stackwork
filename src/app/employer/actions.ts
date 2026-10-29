@@ -51,6 +51,7 @@ export async function saveVacancyAction(_prev: VacancyActionState, formData: For
   }
 
   if (intent === "submit") {
+    if (!user.emailVerifiedAt) return { error: "Подтвердите почту, чтобы отправить вакансию на модерацию: ссылка в письме, повторно запросить можно на странице «Мои вакансии»" };
     const failed = moderationChecks(input).filter((c) => !c.ok);
     if (failed.length) return { error: `Перед отправкой на модерацию: ${failed.map((c) => c.text.toLowerCase()).join("; ")}` };
   }
@@ -73,6 +74,8 @@ export async function saveVacancyAction(_prev: VacancyActionState, formData: For
       data: {
         ...data,
         status,
+        // При повторной отправке сбрасываем старую причину отклонения
+        ...(intent === "submit" ? { moderationComment: null } : {}),
         skills: { deleteMany: {}, create: skillIds.map((skillId, order) => ({ skillId, order })) },
       },
     });
