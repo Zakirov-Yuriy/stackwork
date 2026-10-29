@@ -1,7 +1,37 @@
 @import "tailwindcss";
 
-/* Шрифты. Цвета и тени Soft UI объявлены ниже как --soft-* и классы .neu-* */
+/* Дизайн-токены Stackwork (из макета) */
+:root {
+  --ink: #15171a; /* основной текст, шапка */
+  --ink-2: #2a2f36; /* текст в метках */
+  --muted: #5b6168; /* вторичный текст (4.5:1 на белом) */
+  --muted-2: #7a818a; /* подписи 12–13px */
+  --paper: #f4f4f2; /* фон страницы */
+  --card: #ffffff;
+  --line: #e4e6e3; /* границы карточек */
+  --line-2: #c9ccc8; /* границы полей */
+  --soft: #eef0f2; /* фон серых меток */
+  --accent: #c9f24f; /* акцент: кнопки действия */
+  --link: #1f6f58;
+  --header-muted: #b9bdb8;
+  --header-line: #3a3d42;
+}
+
 @theme inline {
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-soft: var(--soft);
+  --color-accent: var(--accent);
+  --color-link: var(--link);
+  --color-header-muted: var(--header-muted);
+  --color-header-line: var(--header-line);
+
   --font-sans: var(--font-manrope), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 }
@@ -11,358 +41,188 @@ html {
 }
 
 body {
-  background: var(--soft-bg);
-  color: var(--soft-text);
+  background: var(--paper);
+  color: var(--ink);
   font-family: var(--font-sans);
 }
 
-/* ───────────── Soft UI (неоморфизм) для страниц входа и регистрации ───────────── */
-:root {
-  --soft-bg: #e8ebf0;
-  --soft-bg-raised: #f1f3f7;
-  --soft-dark: #c6cbd4; /* тень снизу-справа */
-  --soft-light: #ffffff; /* блик сверху-слева */
-  --soft-text: #2b3140;
-  --soft-muted: #6b7280;
-  --soft-blue: #3b6fd9;
-  --soft-blue-2: #5a8df2;
-}
-
-@layer components {
-.soft-page {
-  background: var(--soft-bg);
-  color: var(--soft-text);
-}
-.neu-card {
-  background: var(--soft-bg);
-  border-radius: 28px;
-  box-shadow:
-    14px 14px 32px var(--soft-dark),
-    -14px -14px 32px var(--soft-light);
-}
-.neu-raised {
-  background: var(--soft-bg);
-  box-shadow:
-    6px 6px 14px var(--soft-dark),
-    -6px -6px 14px var(--soft-light);
-}
-.neu-inset {
-  background: var(--soft-bg);
-  box-shadow:
-    inset 5px 5px 10px var(--soft-dark),
-    inset -5px -5px 10px var(--soft-light);
-}
-.neu-field {
-  background: var(--soft-bg);
-  color: var(--soft-text);
-  border: 1.5px solid transparent;
-  border-radius: 14px;
-  min-height: 52px;
-  padding: 0 18px;
-  width: 100%;
-  box-sizing: border-box;
-  font-size: 15px;
-  outline: none;
-  box-shadow:
-    inset 5px 5px 10px var(--soft-dark),
-    inset -5px -5px 10px var(--soft-light);
-  transition: box-shadow 0.15s, border-color 0.15s;
-}
-.neu-field::placeholder {
-  color: #9aa1ad;
-}
-.neu-field:focus {
-  border-color: #a9c1f5;
-  box-shadow:
-    inset 5px 5px 10px var(--soft-dark),
-    inset -5px -5px 10px var(--soft-light),
-    0 0 0 4px rgba(59, 111, 217, 0.12);
-}
-.neu-primary {
-  background: linear-gradient(135deg, var(--soft-blue-2) 0%, #2d62d0 100%);
-  color: #fff;
-  border: 0;
-  border-radius: 14px;
-  min-height: 56px;
-  font-weight: 800;
-  font-size: 16px;
-  box-shadow:
-    6px 6px 14px var(--soft-dark),
-    -6px -6px 14px var(--soft-light),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  transition: transform 0.1s, filter 0.15s, box-shadow 0.15s;
-}
-.neu-primary:hover {
-  filter: brightness(1.06);
-}
-.neu-primary:active {
-  transform: translateY(1px);
-  box-shadow:
-    inset 4px 4px 10px rgba(0, 0, 0, 0.25),
-    inset -2px -2px 6px rgba(255, 255, 255, 0.1);
-}
-.neu-primary:disabled {
-  opacity: 0.6;
-  filter: none;
-}
-.neu-btn {
-  background: var(--soft-bg);
-  color: var(--soft-text);
-  border: 0;
-  border-radius: 14px;
-  min-height: 52px;
-  font-weight: 700;
-  font-size: 15px;
-  box-shadow:
-    6px 6px 14px var(--soft-dark),
-    -6px -6px 14px var(--soft-light);
-  transition: box-shadow 0.15s, transform 0.1s;
-}
-.neu-btn:hover {
-  box-shadow:
-    8px 8px 18px var(--soft-dark),
-    -8px -8px 18px var(--soft-light);
-}
-.neu-btn:active {
-  transform: translateY(1px);
-  box-shadow:
-    inset 4px 4px 10px var(--soft-dark),
-    inset -4px -4px 10px var(--soft-light);
-}
-.neu-btn:disabled {
-  opacity: 0.55;
-  transform: none;
-}
-.neu-tabs {
-  background: var(--soft-bg);
-  border-radius: 16px;
-  padding: 6px;
-  box-shadow:
-    inset 5px 5px 10px var(--soft-dark),
-    inset -5px -5px 10px var(--soft-light);
-}
-.neu-tab {
-  color: var(--soft-muted);
-  border-radius: 12px;
-  min-height: 48px;
-  font-weight: 700;
-  font-size: 16px;
-  transition: color 0.15s, box-shadow 0.15s, background 0.15s;
-}
-.neu-tab[aria-current="page"],
-.neu-tab[data-active="true"] {
-  background: var(--soft-bg-raised);
-  color: var(--soft-blue);
-  box-shadow:
-    4px 4px 10px var(--soft-dark),
-    -4px -4px 10px var(--soft-light);
-}
-/* Компактные варианты для списка вакансий и шапки */
-.neu-card-sm {
-  background: var(--soft-bg);
-  border-radius: 20px;
-  box-shadow:
-    8px 8px 18px var(--soft-dark),
-    -8px -8px 18px var(--soft-light);
-  transition: box-shadow 0.15s, transform 0.15s;
-}
-a.neu-card-sm:hover {
-  box-shadow:
-    10px 10px 22px var(--soft-dark),
-    -10px -10px 22px var(--soft-light);
-  transform: translateY(-1px);
-}
-.neu-btn-sm {
-  background: var(--soft-bg);
-  color: var(--soft-text);
-  border: 0;
-  border-radius: 12px;
-  min-height: 44px;
-  padding: 0 16px;
-  font-weight: 700;
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow:
-    5px 5px 12px var(--soft-dark),
-    -5px -5px 12px var(--soft-light);
-  transition: box-shadow 0.15s, transform 0.1s, color 0.15s;
-}
-.neu-btn-sm:hover {
-  color: var(--soft-blue);
-}
-.neu-btn-sm:active,
-.neu-btn-sm[aria-current] {
-  box-shadow:
-    inset 4px 4px 9px var(--soft-dark),
-    inset -4px -4px 9px var(--soft-light);
-  color: var(--soft-blue);
-}
-.neu-primary-sm {
-  background: linear-gradient(135deg, var(--soft-blue-2) 0%, #2d62d0 100%);
-  color: #fff;
-  border: 0;
-  border-radius: 12px;
-  min-height: 44px;
-  padding: 0 18px;
-  font-weight: 800;
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow:
-    5px 5px 12px var(--soft-dark),
-    -5px -5px 12px var(--soft-light),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  transition: filter 0.15s, transform 0.1s;
-}
-.neu-primary-sm:hover {
-  filter: brightness(1.06);
-}
-.neu-primary-sm:active {
-  transform: translateY(1px);
-}
-.neu-search {
-  background: var(--soft-bg);
-  border-radius: 14px;
-  min-height: 56px;
-  padding: 0 18px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow:
-    inset 5px 5px 10px var(--soft-dark),
-    inset -5px -5px 10px var(--soft-light);
-  transition: box-shadow 0.15s;
-}
-.neu-search:focus-within {
-  box-shadow:
-    inset 5px 5px 10px var(--soft-dark),
-    inset -5px -5px 10px var(--soft-light),
-    0 0 0 4px rgba(59, 111, 217, 0.12);
-}
-.neu-search input {
-  background: transparent;
-  border: 0;
-  outline: 0;
-  flex: 1;
-  min-width: 0;
-  font-size: 16px;
-  color: var(--soft-text);
-}
-.neu-search input::placeholder {
-  color: #9aa1ad;
-}
-.neu-chip {
-  background: var(--soft-bg);
-  color: var(--soft-text);
-  border-radius: 999px;
-  padding: 5px 11px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 1.3;
-  box-shadow:
-    inset 2px 2px 5px var(--soft-dark),
-    inset -2px -2px 5px var(--soft-light);
-}
-a.neu-chip:hover {
-  color: var(--soft-blue);
-}
-.chip-blue {
-  background: linear-gradient(135deg, var(--soft-blue-2) 0%, #2d62d0 100%);
-  color: #fff;
-  border-radius: 8px;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 700;
-}
-.chip-flat {
-  background: #dadfe7;
-  color: #3b4252;
-  border-radius: 8px;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 700;
-}
-.neu-pill {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  min-height: 36px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: var(--soft-bg);
-  color: var(--soft-text);
-  font-size: 13px;
-  cursor: pointer;
-  box-shadow:
-    4px 4px 9px var(--soft-dark),
-    -4px -4px 9px var(--soft-light);
-  transition: box-shadow 0.15s, color 0.15s;
-}
-.neu-pill input {
+/* Пилюли-чекбоксы для стека: input скрыт, выбранное состояние через :has */
+.tag-pill input {
   position: absolute;
   opacity: 0;
   width: 0;
   height: 0;
 }
-.neu-pill:has(input:checked) {
-  color: var(--soft-blue);
-  font-weight: 600;
-  box-shadow:
-    inset 4px 4px 9px var(--soft-dark),
-    inset -4px -4px 9px var(--soft-light);
+.tag-pill:has(input:checked) {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
 }
-.neu-pill:has(input:focus-visible) {
-  outline: 3px solid rgba(59, 111, 217, 0.25);
-  outline-offset: 2px;
+
+/* ───────────────────────────── Админка ─────────────────────────────
+ * Оформление по мотивам шаблона Sneat (как в админке ИКАН): светлая и тёмная темы,
+ * левое меню, карточки-счётчики. Тема хранится в localStorage («admin-theme»)
+ * и ставится атрибутом html[data-admin-theme] до отрисовки.
+ */
+.admin {
+  --a-bg: #f5f5f9;
+  --a-card: #ffffff;
+  --a-menu: #ffffff;
+  --a-text: #697a8d;
+  --a-heading: #566a7f;
+  --a-muted: #a1acb8;
+  --a-line: #d9dee3;
+  --a-line-soft: #eceef1;
+  --a-primary: #696cff;
+  --a-primary-soft: #e7e7ff;
+  --a-primary-text: #696cff;
+  --a-success: #71dd37;
+  --a-success-soft: #e8fadf;
+  --a-warning: #ffab00;
+  --a-warning-soft: #fff2d6;
+  --a-danger: #ff3e1d;
+  --a-danger-soft: #ffe0db;
+  --a-info: #03c3ec;
+  --a-info-soft: #d7f5fc;
+  --a-secondary-soft: #ebeef0;
+  --a-shadow: 0 2px 6px 0 rgba(67, 89, 113, 0.12);
+  --a-menu-active: #e7e7ff;
+  --a-thead: #f5f5f9;
+  --a-hover: #f9f9fb;
+  --a-input: #ffffff;
+  color-scheme: light;
+  background: var(--a-bg);
+  color: var(--a-text);
+  font-family: var(--font-public-sans), var(--font-sans), system-ui, sans-serif;
 }
-.soft-link {
-  color: var(--soft-blue);
-  font-weight: 700;
+html[data-admin-theme="dark"] .admin {
+  --a-bg: #232333;
+  --a-card: #2b2c40;
+  --a-menu: #2b2c40;
+  --a-text: #a3a4cc;
+  --a-heading: #cbcbe2;
+  --a-muted: #7983bb;
+  --a-line: #444564;
+  --a-line-soft: #3a3b59;
+  --a-primary: #696cff;
+  --a-primary-soft: #3a3b73;
+  --a-primary-text: #8f91ff;
+  --a-success-soft: #2f4a2c;
+  --a-warning-soft: #4d3f21;
+  --a-danger-soft: #4d2a2a;
+  --a-info-soft: #1f3f4a;
+  --a-secondary-soft: #3b3c56;
+  --a-shadow: 0 2px 6px 0 rgba(20, 21, 33, 0.3);
+  --a-menu-active: #3a3b73;
+  --a-thead: #3a3b59;
+  --a-hover: #33344c;
+  --a-input: #2b2c40;
+  color-scheme: dark;
 }
-.soft-link:hover {
+.admin h1, .admin h2, .admin h3, .admin h4, .admin h5, .admin th {
+  color: var(--a-heading);
+}
+.admin a {
+  color: inherit;
+}
+.admin .a-link {
+  color: var(--a-primary-text);
+}
+.admin .a-link:hover {
   text-decoration: underline;
 }
-.soft-divider {
-  height: 1px;
-  background: var(--soft-dark);
-  opacity: 0.6;
+.admin .a-card {
+  background: var(--a-card);
+  border-radius: 0.5rem;
+  box-shadow: var(--a-shadow);
 }
-
-.neu-check {
-  appearance: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
-  background: var(--soft-bg);
-  box-shadow:
-    inset 3px 3px 6px var(--soft-dark),
-    inset -3px -3px 6px var(--soft-light);
-  display: inline-grid;
-  place-content: center;
-  cursor: pointer;
-  flex: none;
+.admin .a-input,
+.admin .a-select,
+.admin .a-textarea {
+  background: var(--a-input);
+  border: 1px solid var(--a-line);
+  border-radius: 0.375rem;
+  color: var(--a-heading);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9375rem;
+  min-height: 2.5rem;
+  width: 100%;
+  outline: none;
 }
-.neu-check::before {
-  content: "";
-  width: 12px;
-  height: 12px;
-  border-radius: 4px;
-  background: var(--soft-blue);
-  transform: scale(0);
-  transition: transform 0.12s;
+.admin .a-input:focus,
+.admin .a-select:focus,
+.admin .a-textarea:focus {
+  border-color: var(--a-primary);
+  box-shadow: 0 0 0 0.2rem rgba(105, 108, 255, 0.15);
 }
-.neu-check:checked::before {
-  transform: scale(1);
+.admin .a-textarea {
+  min-height: 6rem;
+  resize: vertical;
 }
-.neu-check:focus-visible {
-  outline: 3px solid rgba(59, 111, 217, 0.25);
-  outline-offset: 2px;
+.admin .a-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
 }
+.admin .a-table th {
+  background: var(--a-thead);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  white-space: nowrap;
 }
-
-
+.admin .a-table td {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--a-line-soft);
+  vertical-align: middle;
+}
+.admin .a-table tbody tr:hover td {
+  background: var(--a-hover);
+}
+.admin .a-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.125rem 0.75rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 0.375rem;
+  font-size: 0.9375rem;
+  color: var(--a-text);
+}
+.admin .a-menu-item:hover {
+  background: var(--a-hover);
+  color: var(--a-heading);
+}
+.admin .a-menu-item[aria-current="page"] {
+  background: var(--a-menu-active);
+  color: var(--a-primary-text);
+  font-weight: 600;
+}
+.admin .a-menu-header {
+  margin: 1.25rem 1.5rem 0.4rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--a-muted);
+}
+/* Описание вакансии из источника */
+.job-html {
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.job-html p { margin: 0 0 0.9em; }
+.job-html h2, .job-html h3, .job-html h4 { margin: 1.4em 0 0.5em; font-weight: 800; line-height: 1.3; }
+.job-html h2 { font-size: 1.15rem; }
+.job-html h3, .job-html h4 { font-size: 1.02rem; }
+.job-html ul { margin: 0 0 1em; padding-left: 1.4em; list-style: disc; }
+.job-html ol { margin: 0 0 1em; padding-left: 1.4em; list-style: decimal; }
+.job-html li { margin: 0.25em 0; }
+.job-html a { color: var(--link); text-decoration: underline; }
+.job-html strong { font-weight: 700; }
+.job-html hr { border: 0; border-top: 1px solid var(--line); margin: 1.2em 0; }
+.job-html blockquote { margin: 0 0 1em; padding-left: 1em; border-left: 3px solid var(--line-2); color: var(--muted); }
+.job-html table { border-collapse: collapse; margin: 0 0 1em; }
+.job-html td, .job-html th { border: 1px solid var(--line); padding: 0.35em 0.6em; }

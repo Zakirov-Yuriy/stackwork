@@ -4,9 +4,6 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
-import { rateLimited } from "@/lib/rate-limit";
-import { verifyTurnstile } from "@/lib/turnstile";
-import { sendMailSafe, siteUrl, newApplicationMail } from "@/lib/mail";
 
 export type ApplyState = { error?: string; success?: string } | undefined;
 
@@ -15,14 +12,8 @@ export async function applyAction(_prev: ApplyState, formData: FormData): Promis
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=${encodeURIComponent(`/vacancies/${slug}#respond`)}`);
   if (user.role !== "CANDIDATE") return { error: "Откликаться могут только аккаунты соискателей" };
-  if (!user.emailVerifiedAt) return { error: "Сначала подтвердите почту: ссылка в письме, отправленном при регистрации. Повторно запросить её можно в «Моих откликах»" };
-  if (await rateLimited("apply", 20, 3600)) return { error: "Слишком много откликов за час. Попробуйте позже" };
-  if (!(await verifyTurnstile(formData.get("cf-turnstile-response")))) return { error: "Не удалось пройти проверку «я не робот». Обновите страницу и попробуйте снова" };
 
-  const vacancy = await db.vacancy.findFirst({
-    where: { slug, status: "PUBLISHED" },
-    select: { id: true, title: true, acceptsGithubLink: true, company: { select: { members: { select: { email: true }, where: { role: "EMPLOYER" } } } } },
-  });
+  const vacancy = await db.vacancy.findFirst({ where: { slug, status: "PUBLISHED" }, select: { id: true, acceptsGithubLink: true } });
   if (!vacancy) return { error: "Вакансия больше не опубликована" };
 
   const coverLetter = String(formData.get("coverLetter") ?? "").trim().slice(0, 4000) || null;
@@ -48,12 +39,6 @@ export async function applyAction(_prev: ApplyState, formData: FormData): Promis
   await db.application.create({
     data: { vacancyId: vacancy.id, candidateId: user.id, coverLetter, githubUrl, resumeUrl },
   });
-
-  // Уведомляем всех сотрудников компании с ролью работодателя
-  const url = siteUrl(`/employer/vacancies/${vacancy.id}/applications`);
-  for (const m of vacancy.company.members) {
-    sendMailSafe(newApplicationMail(m.email, { vacancyTitle: vacancy.title, candidateName: user.name ?? user.email, url }));
-  }
 
   revalidatePath(`/vacancies/${slug}`);
   revalidatePath("/me");

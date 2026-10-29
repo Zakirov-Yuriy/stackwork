@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
-import { slugify, uniqueSlug } from "@/lib/slug";
+import { slugify, skillSlug, uniqueSlug } from "@/lib/slug";
 import { parseVacancyForm, moderationChecks, type VacancyInput } from "@/lib/vacancy-form";
 
 export type VacancyActionState = { error?: string; success?: string } | undefined;
@@ -20,7 +20,7 @@ async function requireEmployerAction() {
 async function upsertSkills(names: string[]): Promise<string[]> {
   const ids: string[] = [];
   for (const name of names) {
-    const slug = slugify(name) || `skill-${Date.now().toString(36)}`;
+    const slug = skillSlug(name);
     const skill = await db.skill.upsert({
       where: { slug },
       update: {},
@@ -51,7 +51,6 @@ export async function saveVacancyAction(_prev: VacancyActionState, formData: For
   }
 
   if (intent === "submit") {
-    if (!user.emailVerifiedAt) return { error: "Подтвердите почту, чтобы отправить вакансию на модерацию: ссылка в письме, повторно запросить можно на странице «Мои вакансии»" };
     const failed = moderationChecks(input).filter((c) => !c.ok);
     if (failed.length) return { error: `Перед отправкой на модерацию: ${failed.map((c) => c.text.toLowerCase()).join("; ")}` };
   }
@@ -74,8 +73,6 @@ export async function saveVacancyAction(_prev: VacancyActionState, formData: For
       data: {
         ...data,
         status,
-        // При повторной отправке сбрасываем старую причину отклонения
-        ...(intent === "submit" ? { moderationComment: null } : {}),
         skills: { deleteMany: {}, create: skillIds.map((skillId, order) => ({ skillId, order })) },
       },
     });

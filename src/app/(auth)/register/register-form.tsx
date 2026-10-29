@@ -3,87 +3,101 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { registerAction, type AuthState } from "../actions";
-import { SoftLabel, SoftError } from "../auth-card";
-import { ArrowIcon } from "../login/login-form";
-import { Turnstile } from "@/components/turnstile";
+import { Field, ErrorBanner, fieldCls, primaryBtn } from "@/components/form";
 
 type Role = "CANDIDATE" | "EMPLOYER";
 
-export function RegisterForm({ next, initialRole, siteKey }: { next: string; initialRole: Role; siteKey: string }) {
+export function RegisterForm({ next, initialRole }: { next: string; initialRole: Role }) {
   const [state, action, pending] = useActionState<AuthState, FormData>(registerAction, undefined);
   const [role, setRole] = useState<Role>((state?.fields?.role as Role) ?? initialRole);
+
   const f = state?.fields ?? {};
 
   return (
-    <form action={action} className="flex flex-col gap-5">
+    <form action={action} className="flex flex-col gap-4">
       <input type="hidden" name="next" value={next} />
-      <SoftError message={state?.error} />
+      <ErrorBanner message={state?.error} />
 
-      <fieldset className="m-0 border-0 p-0">
-        <legend className="mb-2 text-sm font-bold text-[color:var(--soft-text)]">Кто вы</legend>
-        <div className="neu-tabs grid grid-cols-2 gap-1.5">
-          <RoleTab value="CANDIDATE" label="Ищу работу" checked={role === "CANDIDATE"} onChange={() => setRole("CANDIDATE")} />
-          <RoleTab value="EMPLOYER" label="Нанимаю" checked={role === "EMPLOYER"} onChange={() => setRole("EMPLOYER")} />
-        </div>
+      <fieldset className="m-0 flex gap-2 border-0 p-0">
+        <legend className="mb-1.5 text-sm font-bold">Кто вы</legend>
+        <RoleOption
+          value="CANDIDATE"
+          title="Ищу работу"
+          hint="Резюме и отклики на вакансии"
+          checked={role === "CANDIDATE"}
+          onChange={() => setRole("CANDIDATE")}
+        />
+        <RoleOption
+          value="EMPLOYER"
+          title="Нанимаю"
+          hint="Вакансии и отклики кандидатов"
+          checked={role === "EMPLOYER"}
+          onChange={() => setRole("EMPLOYER")}
+        />
       </fieldset>
 
-      <div className="flex flex-col gap-2">
-        <SoftLabel htmlFor="name">{role === "EMPLOYER" ? "Ваше имя" : "Имя"}</SoftLabel>
-        <input id="name" name="name" type="text" autoComplete="name" required placeholder="Иван Петров" defaultValue={f.name ?? ""} className="neu-field" />
-      </div>
+      <Field label={role === "EMPLOYER" ? "Ваше имя" : "Имя"} htmlFor="name">
+        <input id="name" name="name" type="text" autoComplete="name" required defaultValue={f.name ?? ""} className={fieldCls} />
+      </Field>
 
       {role === "EMPLOYER" ? (
-        <div className="flex flex-col gap-2">
-          <SoftLabel htmlFor="companyName">Название компании</SoftLabel>
-          <input id="companyName" name="companyName" type="text" autoComplete="organization" placeholder="Как в карточке вакансии" defaultValue={f.companyName ?? ""} className="neu-field" />
-        </div>
+        <Field label="Название компании" htmlFor="companyName" hint="Как в карточке вакансии. Поменять можно позже в кабинете.">
+          <input id="companyName" name="companyName" type="text" autoComplete="organization" defaultValue={f.companyName ?? ""} className={fieldCls} />
+        </Field>
       ) : null}
 
-      <div className="flex flex-col gap-2">
-        <SoftLabel htmlFor="email">Почта</SoftLabel>
-        <input id="email" name="email" type="email" autoComplete="email" required placeholder="you@example.com" defaultValue={f.email ?? ""} className="neu-field" />
-      </div>
+      <Field label="Почта" htmlFor="email">
+        <input id="email" name="email" type="email" autoComplete="email" required defaultValue={f.email ?? ""} className={fieldCls} />
+      </Field>
 
-      <div className="flex flex-col gap-2">
-        <SoftLabel htmlFor="password">Пароль</SoftLabel>
-        <input id="password" name="password" type="password" autoComplete="new-password" required minLength={8} placeholder="Не короче 8 символов" className="neu-field" />
-      </div>
+      <Field label="Пароль" htmlFor="password" hint="Не короче 8 символов">
+        <input id="password" name="password" type="password" autoComplete="new-password" required minLength={8} className={fieldCls} />
+      </Field>
 
-      <div className="flex flex-col gap-2">
-        <SoftLabel htmlFor="passwordConfirm">Повторите пароль</SoftLabel>
-        <input id="passwordConfirm" name="passwordConfirm" type="password" autoComplete="new-password" required minLength={8} placeholder="Ещё раз" className="neu-field" />
-      </div>
-
-      <label className="flex cursor-pointer items-start gap-2.5 text-[13px] leading-snug text-[color:var(--soft-muted)]">
-        <input type="checkbox" name="consent" className="neu-check mt-0.5" />
+      <label className="flex cursor-pointer items-start gap-2.5 text-[13px] leading-snug text-muted">
+        <input type="checkbox" name="consent" className="mt-0.5 h-[18px] w-[18px] flex-none accent-ink" />
         <span>
           Даю{" "}
-          <Link href="/consent" className="font-semibold text-[color:var(--soft-blue)] hover:underline">
+          <Link href="/consent" className="font-semibold text-link hover:text-ink">
             согласие на обработку персональных данных
           </Link>{" "}
           и принимаю{" "}
-          <Link href="/terms" className="font-semibold text-[color:var(--soft-blue)] hover:underline">
+          <Link href="/terms" className="font-semibold text-link hover:text-ink">
             пользовательское соглашение
           </Link>
           .
         </span>
       </label>
 
-      <Turnstile siteKey={siteKey} />
-
-      <button type="submit" disabled={pending} className="neu-primary mt-1 inline-flex items-center justify-center gap-2">
-        {pending ? "Создаём аккаунт…" : "Создать аккаунт"}
-        {!pending ? <ArrowIcon /> : null}
+      <button type="submit" disabled={pending} className={primaryBtn}>
+        {pending ? "Создаём аккаунт…" : "Зарегистрироваться"}
       </button>
     </form>
   );
 }
 
-function RoleTab({ value, label, checked, onChange }: { value: Role; label: string; checked: boolean; onChange: () => void }) {
+function RoleOption({
+  value,
+  title,
+  hint,
+  checked,
+  onChange,
+}: {
+  value: Role;
+  title: string;
+  hint: string;
+  checked: boolean;
+  onChange: () => void;
+}) {
   return (
-    <label data-active={checked} className="neu-tab inline-flex cursor-pointer items-center justify-center text-[15px]">
+    <label
+      className={`flex flex-1 cursor-pointer flex-col gap-0.5 rounded-[10px] border px-3.5 py-3 ${
+        checked ? "border-ink bg-ink text-white" : "border-line-2 bg-card text-ink hover:border-ink"
+      }`}
+    >
       <input type="radio" name="role" value={value} checked={checked} onChange={onChange} className="sr-only" />
-      {label}
+      <span className="text-[15px] font-extrabold">{title}</span>
+      <span className={`text-xs ${checked ? "text-header-muted" : "text-muted"}`}>{hint}</span>
     </label>
   );
 }

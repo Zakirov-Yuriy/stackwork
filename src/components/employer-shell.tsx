@@ -1,49 +1,56 @@
 import Link from "next/link";
+import { Logo } from "./logo";
 import { logoutAction } from "@/app/(auth)/actions";
 import type { CurrentUser } from "@/lib/session";
-import { MobileMenu } from "./mobile-menu";
 
-/** Шапка кабинета работодателя: своё меню и бейдж «для работодателей». */
+const navLink = "text-[#D7DAD6] hover:text-white";
+const navActive = "border-b-2 border-accent pb-1 text-white";
+
+/** Шапка кабинета работодателя: отдельное меню, бейдж «для работодателей». */
 export function EmployerHeader({ user, active }: { user: CurrentUser; active: "vacancies" | "responses" | "company" | "billing" }) {
   const item = (key: typeof active, href: string, label: string) => (
-    <Link href={href} className="neu-tab inline-flex items-center justify-center px-4" aria-current={active === key ? "page" : undefined} style={{ minHeight: 40, fontSize: 14, borderRadius: 10 }}>
+    <Link href={href} className={active === key ? navActive : navLink}>
       {label}
     </Link>
   );
   return (
-    <header className="soft-page">
-      <div className="mx-auto flex min-h-[76px] max-w-[1180px] flex-wrap items-center gap-x-6 gap-y-3 px-6 py-3">
-        <Link href="/employer" className="flex items-center gap-2.5 text-[22px] font-extrabold tracking-tight text-[color:var(--soft-text)]">
-          <span aria-hidden="true" className="neu-raised inline-flex h-10 w-10 items-center justify-center rounded-xl font-mono text-sm font-semibold text-[color:var(--soft-blue)]">
-            &lt;/&gt;
-          </span>
+    <header className="bg-ink text-white">
+      <div className="mx-auto flex min-h-16 max-w-[1180px] flex-wrap items-center gap-x-8 gap-y-2 px-6 py-2.5">
+        <Link href="/employer" className="flex items-center gap-2.5 text-[22px] font-extrabold tracking-tight text-white">
+          <Logo />
           <span>stackwork</span>
-          <span className="neu-inset rounded-lg px-2.5 py-1 text-xs font-semibold tracking-[0.04em] text-[color:var(--soft-muted)]">для работодателей</span>
+          <span className="rounded-md border border-header-line px-2 py-[3px] text-xs font-semibold tracking-[0.04em] text-header-muted">
+            для работодателей
+          </span>
         </Link>
-        <MobileMenu>
-        <nav aria-label="Меню кабинета" className="neu-tabs flex flex-wrap gap-1 self-start" style={{ padding: 4, borderRadius: 14 }}>
+        <nav aria-label="Меню кабинета" className="flex flex-wrap gap-6 text-[15px] font-semibold">
           {item("vacancies", "/employer", "Мои вакансии")}
           {item("responses", "/employer/responses", "Отклики")}
           {item("company", "/employer/company", "Компания")}
           {item("billing", "/employer/billing", "Тариф")}
         </nav>
-        <div className="flex flex-wrap items-center gap-3 md:ml-auto">
-          <span className="inline-flex min-h-11 items-center gap-2.5 text-sm font-semibold text-[color:var(--soft-text)]">
-            <span aria-hidden="true" className="chip-blue inline-flex h-8 w-8 items-center justify-center rounded-lg text-[13px] font-extrabold">
+        <div className="ml-auto flex flex-wrap items-center gap-3">
+          <span className="inline-flex min-h-11 items-center gap-2.5 text-sm font-semibold">
+            <span
+              aria-hidden="true"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[13px] font-extrabold text-ink"
+            >
               {user.company?.initials ?? "?"}
             </span>
             <span>{user.company?.name ?? "Компания не указана"}</span>
           </span>
-          <Link href="/" className="neu-btn-sm">
+          <Link
+            href="/"
+            className="inline-flex min-h-11 items-center rounded-lg border border-header-line px-3.5 text-sm font-semibold text-white hover:border-white"
+          >
             На сайт
           </Link>
           <form action={logoutAction}>
-            <button type="submit" className="neu-btn-sm">
+            <button type="submit" className="inline-flex min-h-11 items-center rounded-lg bg-white px-4 text-sm font-bold text-ink hover:bg-[#EDEDEA]">
               Выйти
             </button>
           </form>
         </div>
-        </MobileMenu>
       </div>
     </header>
   );
@@ -51,12 +58,12 @@ export function EmployerHeader({ user, active }: { user: CurrentUser; active: "v
 
 export function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    DRAFT: { label: "Черновик", cls: "chip-flat" },
-    MODERATION: { label: "На модерации", cls: "rounded-lg bg-[#FFF0C2] px-2.5 py-1 text-xs font-bold text-[#7A5200]" },
-    PUBLISHED: { label: "Опубликована", cls: "rounded-lg bg-[#DDF3E6] px-2.5 py-1 text-xs font-bold text-[#1F6F58]" },
-    ARCHIVED: { label: "В архиве", cls: "chip-flat opacity-70" },
-    REJECTED: { label: "Отклонена", cls: "rounded-lg bg-[#F9E0E0] px-2.5 py-1 text-xs font-bold text-[#8A1F1F]" },
+    DRAFT: { label: "Черновик", cls: "bg-soft text-ink-2" },
+    MODERATION: { label: "На модерации", cls: "bg-[#FFF2CC] text-[#7A5200]" },
+    PUBLISHED: { label: "Опубликована", cls: "bg-[#EAF7EF] text-[#1F6F58]" },
+    ARCHIVED: { label: "В архиве", cls: "bg-soft text-muted" },
+    REJECTED: { label: "Отклонена", cls: "bg-[#FBEDED] text-[#8A1F1F]" },
   };
-  const s = map[status] ?? { label: status, cls: "chip-flat" };
-  return <span className={s.cls}>{s.label}</span>;
+  const s = map[status] ?? { label: status, cls: "bg-soft text-ink-2" };
+  return <span className={`rounded-md px-2.5 py-1 text-xs font-bold ${s.cls}`}>{s.label}</span>;
 }

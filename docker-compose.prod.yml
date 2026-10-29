@@ -1,0 +1,55 @@
+# Продакшен на VPS: приложение + Postgres + Caddy (HTTPS сам).
+# 1. Скопируйте .env.example в .env и заполните SESSION_SECRET, CRON_SECRET, SITE_URL, DOMAIN.
+# 2. docker compose -f docker-compose.prod.yml up -d --build
+# 3. Ежедневный импорт: в crontab сервера
+#    0 3 * * * curl -s -H "Authorization: Bearer $CRON_SECRET" https://ВАШ_ДОМЕН/api/cron/import
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: stackwork
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stackwork}
+      POSTGRES_DB: stackwork
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stackwork -d stackwork"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://stackwork:${POSTGRES_PASSWORD:-stackwork}@db:5432/stackwork?schema=public
+      SESSION_SECRET: ${SESSION_SECRET}
+      CRON_SECRET: ${CRON_SECRET}
+      SITE_URL: ${SITE_URL}
+      CONTACT_EMAIL: ${CONTACT_EMAIL}
+    expose:
+      - "3000"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

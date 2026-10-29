@@ -19,11 +19,14 @@ export async function GET(_request: NextRequest, ctx: RouteContext<"/api/v1/vaca
       slug: v.company.slug,
       name: v.company.name,
       initials: v.company.initials,
+      logoUrl: v.company.logoUrl,
       industry: v.company.industry,
       city: v.company.city,
       description: v.company.description,
       website: v.company.website,
     },
+    // У импортированных вакансий описание одним HTML-блоком «как в источнике»
+    descriptionHtml: v.descriptionHtml,
     description: {
       aboutTeam: v.aboutTeam,
       responsibilities: v.responsibilities,
