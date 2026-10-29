@@ -19,7 +19,6 @@ import {
   Users,
   ExternalLink,
 } from "lucide-react";
-import { Logo } from "@/components/logo";
 
 export type AdminBadges = { moderation: number; claims: number; running: boolean };
 
@@ -100,7 +99,9 @@ export function AdminShell({
       >
         <div className="flex h-16 items-center gap-2.5 px-6">
           <Link href="/admin" className="flex items-center gap-2.5 text-lg font-extrabold text-[var(--a-heading)]">
-            <Logo size="sm" />
+            <span aria-hidden="true" className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--a-primary)] font-mono text-xs font-semibold text-white">
+              &lt;/&gt;
+            </span>
             <span>stackwork</span>
           </Link>
           <button type="button" aria-label="Скрыть меню" onClick={() => setOpen(false)} className="ml-auto rounded p-1 hover:bg-[var(--a-hover)] xl:hidden">

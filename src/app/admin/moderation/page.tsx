@@ -4,8 +4,8 @@ import { db } from "@/lib/db";
 import { requireRole } from "@/lib/guards";
 import { GRADE_LABEL, WORK_FORMAT_LABEL, EMPLOYMENT_LABEL, formatSalary, formatDate, plural } from "@/lib/labels";
 import { ADAPTER_BY_SOURCE } from "@/lib/import/sources";
-import { PageHeader, Card, Badge, Empty, btn } from "@/components/admin/ui";
-import { moderateAction } from "./actions";
+import { PageHeader, Card, Badge, Empty, StatusBadgeAdmin, btn, dateTime } from "@/components/admin/ui";
+import { moderateAction, resolveReportAction } from "./actions";
 
 export const metadata: Metadata = { title: "Модерация" };
 
@@ -27,7 +27,7 @@ function Lines({ text }: { text: string | null }) {
 export default async function ModerationPage() {
   await requireRole("ADMIN", "/admin/moderation");
 
-  const [queue, counts] = await Promise.all([
+  const [queue, counts, reports] = await Promise.all([
     db.vacancy.findMany({
       where: { status: "MODERATION" },
       orderBy: { updatedAt: "asc" },
@@ -35,6 +35,12 @@ export default async function ModerationPage() {
       include: { company: { select: { name: true, slug: true } }, author: { select: { email: true } }, skills: { orderBy: { order: "asc" }, include: { skill: true } } },
     }),
     db.vacancy.groupBy({ by: ["status"], _count: { _all: true } }),
+    db.report.findMany({
+      where: { status: "OPEN" },
+      orderBy: { createdAt: "asc" },
+      include: { vacancy: { select: { id: true, slug: true, title: true, status: true, company: { select: { name: true } } } } },
+      take: 50,
+    }),
   ]);
   const count = Object.fromEntries(counts.map((c) => [c.status, c._count._all])) as Record<string, number>;
 
@@ -106,6 +112,9 @@ export default async function ModerationPage() {
 
                 <form action={moderateAction} className="mt-4 flex flex-wrap items-center gap-2 border-t border-[var(--a-line-soft)] pt-4">
                   <input type="hidden" name="id" value={v.id} />
+                  {!imported ? (
+                    <input type="text" name="comment" placeholder="Причина отклонения (работодатель увидит её в письме и в редакторе)" className="a-input order-first w-full" />
+                  ) : null}
                   <button type="submit" name="decision" value="approve" className={btn("primary")}>
                     Опубликовать
                   </button>
@@ -127,6 +136,42 @@ export default async function ModerationPage() {
           })}
         </div>
       )}
+
+      <Card className="mt-6" title={`Жалобы${reports.length ? ` (${reports.length})` : ""}`} padded={false}>
+        {reports.length === 0 ? (
+          <Empty>Открытых жалоб нет. Посетители оставляют их по ссылке «Пожаловаться на вакансию».</Empty>
+        ) : (
+          <ul className="m-0 list-none divide-y divide-[var(--a-line-soft)] p-0">
+            {reports.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-start gap-4 px-6 py-4">
+                <div className="flex min-w-0 flex-[1_1_360px] flex-col gap-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link href={`/vacancies/${r.vacancy.slug}`} className="a-link font-semibold">
+                      {r.vacancy.title}
+                    </Link>
+                    <StatusBadgeAdmin status={r.vacancy.status} />
+                  </div>
+                  <span className="text-xs text-[var(--a-muted)]">
+                    {r.vacancy.company.name} · {dateTime(r.createdAt)} · {r.email ?? "аноним"}
+                  </span>
+                  <p className="m-0 mt-1 text-sm font-semibold text-[var(--a-heading)]">{r.reason}</p>
+                  {r.comment ? <p className="m-0 whitespace-pre-line text-sm">{r.comment}</p> : null}
+                </div>
+                <form action={resolveReportAction} className="flex flex-wrap items-center gap-2">
+                  <input type="hidden" name="id" value={r.id} />
+                  <input type="hidden" name="vacancyId" value={r.vacancy.id} />
+                  <button type="submit" name="decision" value="archive" className={btn("danger", "sm")}>
+                    Снять вакансию
+                  </button>
+                  <button type="submit" name="decision" value="dismiss" className={btn("ghost", "sm")}>
+                    Отклонить жалобу
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
     </>
   );
 }

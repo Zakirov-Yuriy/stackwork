@@ -2,16 +2,16 @@ import Link from "next/link";
 import type { Skill } from "@/generated/prisma/client";
 import type { VacancyFilters } from "@/lib/vacancies";
 import { formatVacancyCount } from "@/lib/labels";
+import { Collapsible } from "./mobile-menu";
 
 type Facets = {
   format: { REMOTE: number; HYBRID: number; OFFICE: number };
   grade: { JUNIOR: number; MIDDLE: number; SENIOR: number; LEAD: number };
 };
 
-const legendCls = "mb-2 text-[13px] font-bold uppercase tracking-[0.06em] text-muted";
-const rowCls = "flex min-h-11 cursor-pointer items-center gap-2.5 text-sm font-semibold";
-const boxCls = "m-0 h-[18px] w-[18px] accent-ink";
-const countCls = "ml-auto text-xs font-medium text-muted-2";
+const legendCls = "mb-2.5 text-[12px] font-extrabold uppercase tracking-[0.08em] text-[color:var(--soft-muted)]";
+const rowCls = "flex min-h-11 cursor-pointer items-center gap-3 text-sm font-semibold text-[color:var(--soft-text)]";
+const countCls = "ml-auto text-xs font-semibold text-[color:var(--soft-muted)]";
 
 function Check({
   name,
@@ -30,43 +30,33 @@ function Check({
 }) {
   return (
     <label className={rowCls}>
-      <input type={type} name={name} value={value} defaultChecked={checked} className={boxCls} />
+      <input type={type} name={name} value={value} defaultChecked={checked} className={`neu-check ${type === "radio" ? "rounded-full before:rounded-full" : ""}`} />
       <span>{label}</span>
       {count !== undefined ? <span className={countCls}>{count}</span> : null}
     </label>
   );
 }
 
-export function FiltersSidebar({
-  filters,
-  facets,
-  skills,
-  total,
-}: {
-  filters: VacancyFilters;
-  facets: Facets;
-  skills: Skill[];
-  total: number;
-}) {
+export function FiltersSidebar({ filters, facets, skills, total }: { filters: VacancyFilters; facets: Facets; skills: Skill[]; total: number }) {
   const fmt = new Set(filters.format ?? []);
   const grd = new Set(filters.grade ?? []);
   const emp = new Set(filters.employment ?? []);
   const sk = new Set(filters.skills ?? []);
 
+  const activeCount = fmt.size + grd.size + emp.size + sk.size + (filters.experience ? 1 : 0) + (filters.salaryFrom ? 1 : 0);
+
   return (
-    <aside
-      aria-label="Фильтры"
-      className="box-border flex max-w-[300px] flex-[1_1_260px] flex-col gap-[22px] rounded-xl border border-line bg-card p-5"
-    >
+    <aside aria-label="Фильтры" className="box-border flex w-full flex-col lg:max-w-[300px] lg:flex-[1_1_260px]">
+    <Collapsible title={activeCount ? `Фильтры (${activeCount})` : "Фильтры"}>
+    <div className="neu-card box-border flex flex-col gap-6 p-6">
       <form method="get" action="/" className="contents">
-        {/* Сохраняем поисковый запрос и город при изменении фильтров */}
         {filters.q ? <input type="hidden" name="q" value={filters.q} /> : null}
         {filters.city ? <input type="hidden" name="city" value={filters.city} /> : null}
         {filters.sort === "salary" ? <input type="hidden" name="sort" value="salary" /> : null}
 
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-extrabold">Фильтры</h2>
-          <Link href="/" className="text-[13px] font-semibold text-link hover:text-ink">
+          <h2 className="m-0 text-base font-extrabold">Фильтры</h2>
+          <Link href="/" className="soft-link text-[13px]">
             Сбросить
           </Link>
         </div>
@@ -86,8 +76,8 @@ export function FiltersSidebar({
           <Check name="grade" value="LEAD" label="Lead" checked={grd.has("LEAD")} count={facets.grade.LEAD} />
         </fieldset>
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="salary" className={legendCls.replace("mb-2 ", "")}>
+        <div className="flex flex-col gap-2.5">
+          <label htmlFor="salary" className={legendCls.replace("mb-2.5 ", "")}>
             Зарплата от
           </label>
           <input
@@ -97,7 +87,8 @@ export function FiltersSidebar({
             inputMode="numeric"
             placeholder="150 000"
             defaultValue={filters.salaryFrom ? filters.salaryFrom.toLocaleString("ru-RU") : ""}
-            className="box-border min-h-11 w-full rounded-lg border border-line-2 bg-card px-3 font-mono text-sm outline-none focus:border-ink"
+            className="neu-field font-mono text-sm"
+            style={{ minHeight: 46 }}
           />
         </div>
 
@@ -111,14 +102,11 @@ export function FiltersSidebar({
         </fieldset>
 
         {skills.length ? (
-          <fieldset className="m-0 flex flex-col gap-2.5 border-0 p-0">
-            <legend className={legendCls.replace("mb-2 ", "")}>Стек</legend>
-            <div className="flex flex-wrap gap-2">
+          <fieldset className="m-0 flex flex-col gap-3 border-0 p-0">
+            <legend className={legendCls.replace("mb-2.5 ", "")}>Стек</legend>
+            <div className="flex flex-wrap gap-2.5 py-1">
               {skills.map((s) => (
-                <label
-                  key={s.id}
-                  className="tag-pill relative inline-flex min-h-9 cursor-pointer items-center rounded-full border border-line-2 px-3 font-mono text-[13px]"
-                >
+                <label key={s.id} className="neu-pill font-mono">
                   <input type="checkbox" name="skills" value={s.slug} defaultChecked={sk.has(s.slug)} />
                   <span>{s.name}</span>
                 </label>
@@ -134,13 +122,12 @@ export function FiltersSidebar({
           <Check name="employment" value="CONTRACT" label="Проект или контракт" checked={emp.has("CONTRACT")} />
         </fieldset>
 
-        <button
-          type="submit"
-          className="min-h-12 rounded-[10px] bg-accent text-[15px] font-extrabold text-ink hover:brightness-95"
-        >
+        <button type="submit" className="neu-primary" style={{ minHeight: 52, fontSize: 15 }}>
           Показать {formatVacancyCount(total)}
         </button>
       </form>
+    </div>
+    </Collapsible>
     </aside>
   );
 }

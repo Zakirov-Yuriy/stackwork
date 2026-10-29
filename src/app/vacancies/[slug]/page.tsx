@@ -4,16 +4,20 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { Chip } from "@/components/vacancy-card";
-import { CompanyAvatar } from "@/components/company-avatar";
-import { ExternalApply, SourceLine } from "./external";
-import { BookmarkIcon, ShareIcon } from "@/components/icons";
+import { Chip, SkillTag } from "@/components/vacancy-card";
+import { SaveButton } from "@/components/save-button";
+import { ShareButton } from "@/components/share-button";
+import { savedIdsFor } from "@/lib/saved";
 import { getVacancyBySlug, similarVacancies, countCompanyVacancies } from "@/lib/vacancies";
 import { getCurrentUser } from "@/lib/session";
 import { db } from "@/lib/db";
 import { ApplyForm } from "./apply-form";
-import { APPLICATION_STATUS_LABEL } from "@/lib/labels";
+import { turnstileSiteKey } from "@/lib/turnstile";
+import { VerifyBanner } from "@/components/verify-banner";
+import { CompanyAvatar } from "@/components/company-avatar";
+import { ExternalApply, SourceLine } from "./external";
 import {
+  APPLICATION_STATUS_LABEL,
   GRADE_LABEL,
   WORK_FORMAT_LABEL,
   EMPLOYMENT_LABEL,
@@ -28,22 +32,27 @@ import {
   plural,
 } from "@/lib/labels";
 
-// React.cache дедуплицирует запрос между generateMetadata и страницей
 const loadVacancy = cache(getVacancyBySlug);
+
+const muted = "text-[color:var(--soft-muted)]";
+const text = "text-[color:var(--soft-text)]";
 
 export async function generateMetadata(props: PageProps<"/vacancies/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
   const v = await loadVacancy(slug);
   if (!v) return { title: "Вакансия не найдена" };
   const salary = formatSalary(v.salaryFrom, v.salaryTo, v.currency);
+  const description = `${salary} ${SALARY_TYPE_LABEL[v.salaryType]} · ${GRADE_LABEL[v.grade]} · ${WORK_FORMAT_LABEL[v.workFormat]}. ${v.skills.map((s) => s.skill.name).join(", ")}`;
   return {
     title: `${v.title}, ${v.company.name}`,
-    description: `${salary} ${SALARY_TYPE_LABEL[v.salaryType]} · ${GRADE_LABEL[v.grade]} · ${WORK_FORMAT_LABEL[v.workFormat]}. ${v.skills.map((s) => s.skill.name).join(", ")}`,
+    description,
+    alternates: { canonical: `/vacancies/${v.slug}` },
+    openGraph: { type: "article", title: `${v.title} · ${v.company.name}`, description, url: `/vacancies/${v.slug}` },
   };
 }
 
-function Lines({ text }: { text: string }) {
-  const items = text
+function Lines({ text: t }: { text: string }) {
+  const items = t
     .split("\n")
     .map((s) => s.trim())
     .filter(Boolean);
@@ -56,10 +65,10 @@ function Lines({ text }: { text: string }) {
   );
 }
 
-function Paragraphs({ text }: { text: string }) {
+function Paragraphs({ text: t }: { text: string }) {
   return (
     <>
-      {text
+      {t
         .split(/\n\s*\n/)
         .map((p) => p.trim())
         .filter(Boolean)
@@ -88,7 +97,10 @@ export default async function VacancyPage(props: PageProps<"/vacancies/[slug]">)
 
   const now = new Date();
   const user = await getCurrentUser();
-  const [similar, openCount, myApplication] = await Promise.all([
+  // Счётчик просмотров: без ожидания, ошибки не влияют на страницу
+  db.vacancy.update({ where: { id: v.id }, data: { views: { increment: 1 } } }).catch(() => {});
+
+  const [similar, openCount, myApplication, saved] = await Promise.all([
     similarVacancies(
       v.id,
       v.skills.map((s) => s.skillId),
@@ -100,53 +112,55 @@ export default async function VacancyPage(props: PageProps<"/vacancies/[slug]">)
           select: { status: true, createdAt: true },
         })
       : null,
+    savedIdsFor(user?.id, [v.id]),
   ]);
 
   const salary = formatSalary(v.salaryFrom, v.salaryTo, v.currency);
   const hasSalary = Boolean(v.salaryFrom || v.salaryTo);
+  const respondHref = `/vacancies/${v.slug}#respond`;
   const imported = v.source !== "MANUAL";
-  const applyHref = imported ? v.applyUrl ?? v.externalUrl ?? "#" : "#respond";
+  const applyHref = imported ? v.applyUrl ?? v.externalUrl ?? "#" : respondHref;
 
   return (
     <>
       <SiteHeader />
 
-      <main className="mx-auto box-border flex w-full max-w-[1180px] flex-col gap-5 px-6 pb-12 pt-6">
-        <nav aria-label="Хлебные крошки" className="flex flex-wrap items-center gap-2 text-[13px] text-muted">
-          <Link href="/" className="hover:text-ink">
+      <main className="mx-auto box-border flex w-full max-w-[1180px] flex-col gap-6 px-6 pb-14 pt-4">
+        <nav aria-label="Хлебные крошки" className={`flex flex-wrap items-center gap-2 text-[13px] ${muted}`}>
+          <Link href="/" className="hover:text-[color:var(--soft-text)]">
             Вакансии
           </Link>
           <span aria-hidden="true">/</span>
-          <Link href={`/?q=${encodeURIComponent(v.direction)}`} className="hover:text-ink">
+          <Link href={`/?q=${encodeURIComponent(v.direction)}`} className="hover:text-[color:var(--soft-text)]">
             {v.direction}
           </Link>
           {v.skills[0] ? (
             <>
               <span aria-hidden="true">/</span>
-              <Link href={`/?skills=${v.skills[0].skill.slug}`} className="hover:text-ink">
+              <Link href={`/?skills=${v.skills[0].skill.slug}`} className="hover:text-[color:var(--soft-text)]">
                 {v.skills[0].skill.name}
               </Link>
             </>
           ) : null}
           <span aria-hidden="true">/</span>
-          <span className="text-ink">{v.title}</span>
+          <span className={text}>{v.title}</span>
         </nav>
 
-        <div className="flex flex-wrap items-start gap-6">
-          <article className="flex min-w-0 flex-[999_1_560px] flex-col gap-5">
-            <section className="flex flex-col gap-[18px] rounded-xl border border-line bg-card p-7">
-              <div className="flex flex-col gap-2.5">
-                <h1 className="m-0 text-[30px] font-extrabold leading-tight tracking-tight">{v.title}</h1>
+        <div className="flex flex-wrap items-start gap-7">
+          <article className="flex min-w-0 flex-[999_1_560px] flex-col gap-6">
+            <section className="neu-card flex flex-col gap-5 p-8">
+              <div className="flex flex-col gap-3">
+                <h1 className={`m-0 text-[30px] font-extrabold leading-tight tracking-tight ${text}`}>{v.title}</h1>
                 <div className="font-mono text-[22px] font-semibold">
                   {salary}{" "}
                   {hasSalary ? (
-                    <span className="font-sans text-sm font-semibold text-muted">
+                    <span className={`font-sans text-sm font-semibold ${muted}`}>
                       {imported ? periodSuffix(v.salaryPeriod, hasSalary).trim() || SALARY_TYPE_LABEL[v.salaryType] : SALARY_TYPE_LABEL[v.salaryType]}
                     </span>
                   ) : null}
                 </div>
-                <div className="flex flex-wrap items-center gap-2 text-[15px] text-muted">
-                  <a href="#company" className="font-bold text-link hover:text-ink">
+                <div className={`flex flex-wrap items-center gap-2 text-[15px] ${muted}`}>
+                  <a href="#company" className="soft-link">
                     {v.company.name}
                   </a>
                   <span aria-hidden="true">·</span>
@@ -162,43 +176,26 @@ export default async function VacancyPage(props: PageProps<"/vacancies/[slug]">)
                 {v.language !== "ru" ? <Chip>{LANGUAGE_LABEL[v.language] ?? v.language}</Chip> : null}
               </div>
 
-              <div className="flex flex-wrap items-center gap-2.5">
+              <div className="flex flex-wrap items-center gap-3 pt-1">
                 {imported ? (
-                  <ExternalApply href={applyHref} slug={v.slug} source={v.source} />
+                  <ExternalApply href={applyHref} slug={v.slug} source={v.source} large />
                 ) : (
-                  <a
-                    href="#respond"
-                    className="inline-flex min-h-12 items-center rounded-[10px] bg-accent px-6 text-[15px] font-extrabold text-ink hover:brightness-95"
-                  >
+                  <a href="#respond" className="neu-primary-sm" style={{ minHeight: 48, padding: "0 24px", fontSize: 15 }}>
                     Откликнуться
                   </a>
                 )}
-                <button
-                  type="button"
-                  className="inline-flex min-h-12 items-center gap-2 rounded-[10px] border border-line-2 bg-card px-[18px] text-[15px] font-bold text-ink hover:border-ink"
-                >
-                  <BookmarkIcon />
-                  Сохранить
-                </button>
-                <button
-                  type="button"
-                  aria-label="Поделиться вакансией"
-                  className="inline-flex h-12 w-12 items-center justify-center rounded-[10px] border border-line-2 bg-card hover:border-ink"
-                >
-                  <ShareIcon />
-                </button>
+                <SaveButton vacancyId={v.id} saved={saved.has(v.id)} back={`/vacancies/${v.slug}`} withLabel />
+                <ShareButton title={v.title} path={`/vacancies/${v.slug}`} />
                 {v.publishedAt ? (
-                  <span className="ml-auto text-[13px] text-muted-2">
+                  <span className={`ml-auto text-[13px] ${muted}`}>
                     Опубликовано {formatDate(v.publishedAt)} · {formatRelative(v.publishedAt, now)}
                   </span>
                 ) : null}
               </div>
             </section>
 
-            <section className="flex flex-col gap-6 rounded-xl border border-line bg-card p-7 text-[15px] leading-relaxed">
-              {imported && v.descriptionHtml ? (
-                <div className="job-html" dangerouslySetInnerHTML={{ __html: v.descriptionHtml }} />
-              ) : null}
+            <section className={`neu-card flex flex-col gap-6 p-8 text-[15px] leading-relaxed ${text}`}>
+              {imported && v.descriptionHtml ? <div className="job-html" dangerouslySetInnerHTML={{ __html: v.descriptionHtml }} /> : null}
               {!imported && v.aboutTeam ? (
                 <Section title="О команде">
                   <Paragraphs text={v.aboutTeam} />
@@ -225,17 +222,13 @@ export default async function VacancyPage(props: PageProps<"/vacancies/[slug]">)
                 </Section>
               ) : null}
               {v.skills.length ? (
-                <div className="flex flex-col gap-2.5">
+                <div className="flex flex-col gap-3">
                   <h2 className="m-0 text-lg font-extrabold">Стек</h2>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2.5">
                     {v.skills.map((s) => (
-                      <Link
-                        key={s.skillId}
-                        href={`/?skills=${s.skill.slug}`}
-                        className="rounded-full border border-line px-3 py-1.5 font-mono text-[13px] text-ink-2 hover:border-ink"
-                      >
+                      <SkillTag key={s.skillId} href={`/?skills=${s.skill.slug}`}>
                         {s.skill.name}
-                      </Link>
+                      </SkillTag>
                     ))}
                   </div>
                 </div>
@@ -243,44 +236,36 @@ export default async function VacancyPage(props: PageProps<"/vacancies/[slug]">)
             </section>
 
             {imported ? (
-              <section id="respond" className="flex flex-col gap-4 rounded-xl bg-ink p-7 text-white">
+              <section id="respond" className="neu-card flex flex-col gap-4 p-8">
                 <div className="flex flex-wrap items-center gap-5">
                   <div className="flex flex-[1_1_320px] flex-col gap-1.5">
                     <h2 className="m-0 text-xl font-extrabold">Откликнуться на вакансию</h2>
-                    <p className="m-0 text-sm leading-relaxed text-header-muted">
-                      Отклик уходит напрямую работодателю на его странице: откроется в новой вкладке.
-                    </p>
+                    <p className={`m-0 text-sm leading-relaxed ${muted}`}>Отклик уходит напрямую работодателю на его странице: откроется в новой вкладке.</p>
                   </div>
-                  <ExternalApply href={applyHref} slug={v.slug} source={v.source} />
+                  <ExternalApply href={applyHref} slug={v.slug} source={v.source} large />
                 </div>
-                <SourceLine source={v.source} url={v.externalUrl} companyName={v.company.name} dark />
-                <Link href={`/report?vacancy=${v.slug}`} className="self-start text-[13px] font-semibold text-header-muted hover:text-white">
+                <SourceLine source={v.source} url={v.externalUrl} companyName={v.company.name} />
+                <Link href={`/report?vacancy=${v.slug}`} className={`self-start text-[13px] font-semibold ${muted} hover:text-[color:var(--soft-text)]`}>
                   Пожаловаться на вакансию
                 </Link>
               </section>
             ) : (
-            <section id="respond" className="flex flex-col gap-5 rounded-xl bg-ink p-7 text-white">
+            <section id="respond" className="neu-card flex flex-col gap-5 p-8">
               <div className="flex flex-wrap items-center gap-5">
                 <div className="flex flex-[1_1_320px] flex-col gap-1.5">
                   <h2 className="m-0 text-xl font-extrabold">Откликнуться на вакансию</h2>
-                  <p className="m-0 text-sm leading-relaxed text-header-muted">
+                  <p className={`m-0 text-sm leading-relaxed ${muted}`}>
                     {v.acceptsGithubLink
                       ? "Ссылка на резюме или на GitHub. Ответ работодателя появится в «Моих откликах»."
                       : "Ссылка на резюме. Ответ работодателя появится в «Моих откликах»."}
                   </p>
                 </div>
                 {!user ? (
-                  <div className="flex flex-wrap gap-2.5">
-                    <Link
-                      href={`/login?next=${encodeURIComponent(`/vacancies/${v.slug}#respond`)}`}
-                      className="inline-flex min-h-12 items-center rounded-[10px] bg-accent px-6 text-[15px] font-extrabold text-ink hover:brightness-95"
-                    >
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Link href={`/login?next=${encodeURIComponent(respondHref)}`} className="neu-primary-sm" style={{ minHeight: 48, padding: "0 24px", fontSize: 15 }}>
                       Войти и откликнуться
                     </Link>
-                    <Link
-                      href={`/register?next=${encodeURIComponent(`/vacancies/${v.slug}#respond`)}`}
-                      className="inline-flex min-h-12 items-center px-3 text-sm font-semibold text-header-muted hover:text-white"
-                    >
+                    <Link href={`/register?next=${encodeURIComponent(respondHref)}`} className="soft-link text-sm">
                       Зарегистрироваться
                     </Link>
                   </div>
@@ -288,60 +273,58 @@ export default async function VacancyPage(props: PageProps<"/vacancies/[slug]">)
               </div>
 
               {user?.role === "CANDIDATE" && myApplication ? (
-                <div role="status" className="rounded-lg border border-[#2F6F55] bg-[#1C3A2E] px-4 py-3 text-sm font-semibold text-[#BFE9D3]">
+                <div role="status" className="neu-inset rounded-xl px-4 py-3 text-sm font-semibold text-[#1F6F58]">
                   Вы откликнулись {formatDate(myApplication.createdAt)}. Статус: {APPLICATION_STATUS_LABEL[myApplication.status]}.{" "}
-                  <Link href="/me" className="text-white underline">
+                  <Link href="/me" className="soft-link">
                     Мои отклики
                   </Link>
                 </div>
+              ) : user?.role === "CANDIDATE" && !user.emailVerifiedAt ? (
+                <VerifyBanner user={user} what="нельзя откликаться" />
               ) : user?.role === "CANDIDATE" ? (
-                <ApplyForm slug={v.slug} acceptsGithubLink={v.acceptsGithubLink} />
+                <ApplyForm slug={v.slug} acceptsGithubLink={v.acceptsGithubLink} siteKey={turnstileSiteKey()} />
               ) : user ? (
-                <p className="m-0 text-sm text-header-muted">Откликаться могут только аккаунты соискателей. Вы вошли как работодатель.</p>
+                <p className={`m-0 text-sm ${muted}`}>Откликаться могут только аккаунты соискателей. Вы вошли как работодатель.</p>
               ) : null}
 
-              <Link href={`/report?vacancy=${v.slug}`} className="self-start text-[13px] font-semibold text-header-muted hover:text-white">
+              <Link href={`/report?vacancy=${v.slug}`} className={`self-start text-[13px] font-semibold ${muted} hover:text-[color:var(--soft-text)]`}>
                 Пожаловаться на вакансию
               </Link>
             </section>
             )}
           </article>
 
-          <aside className="box-border flex max-w-[340px] flex-[1_1_300px] flex-col gap-4">
-            <section id="company" className="flex flex-col gap-3.5 rounded-xl border border-line bg-card p-[22px]">
+          <aside className="box-border flex max-w-[340px] flex-[1_1_300px] flex-col gap-5">
+            <section id="company" className="neu-card flex flex-col gap-4 p-6">
               <div className="flex items-center gap-3.5">
                 <CompanyAvatar name={v.company.name} logoUrl={v.company.logoUrl} initials={v.company.initials} size={52} />
                 <div className="flex min-w-0 flex-col gap-0.5">
-                  <Link href={`/companies/${v.company.slug}`} className="text-[17px] font-extrabold text-ink hover:underline">
+                  <Link href={`/companies/${v.company.slug}`} className={`text-[17px] font-extrabold ${text} hover:text-[color:var(--soft-blue)]`}>
                     {v.company.name}
                   </Link>
-                  <span className="text-[13px] text-muted">
-                    {[v.company.industry, v.company.city].filter(Boolean).join(" · ")}
-                  </span>
+                  <span className={`text-[13px] ${muted}`}>{[v.company.industry, v.company.city].filter(Boolean).join(" · ")}</span>
                 </div>
               </div>
-              {v.company.description ? (
-                <p className="m-0 text-sm leading-relaxed text-ink-2">{v.company.description}</p>
-              ) : null}
+              {v.company.description ? <p className={`m-0 text-sm leading-relaxed ${text}`}>{v.company.description}</p> : null}
               <div className="flex flex-wrap gap-4 text-sm">
-                <Link href={`/?q=${encodeURIComponent(v.company.name)}`} className="font-bold text-link hover:text-ink">
+                <Link href={`/?q=${encodeURIComponent(v.company.name)}`} className="soft-link">
                   {openCount} {plural(openCount, "открытая вакансия", "открытые вакансии", "открытых вакансий")}
                 </Link>
-                <Link href={`/companies/${v.company.slug}`} className="font-bold text-link hover:text-ink">
+                <Link href={`/companies/${v.company.slug}`} className="soft-link">
                   О компании
                 </Link>
               </div>
               {v.company.isExternal && !v.company.claimedAt ? (
-                <Link href={`/companies/${v.company.slug}/claim`} className="text-[13px] font-semibold text-muted hover:text-ink">
+                <Link href={`/companies/${v.company.slug}/claim`} className={`text-[13px] font-semibold ${muted} hover:text-[color:var(--soft-text)]`}>
                   Это ваша компания? Заберите страницу
                 </Link>
               ) : null}
             </section>
 
             {!imported ? (
-            <section className="flex flex-col gap-3 rounded-xl border border-line bg-card p-[22px]">
+            <section className="neu-card flex flex-col gap-3 p-6">
               <h2 className="m-0 text-[15px] font-extrabold">Как проходит отбор</h2>
-              <ol className="m-0 flex list-decimal flex-col gap-1 pl-5 text-sm leading-relaxed text-ink-2">
+              <ol className={`m-0 flex list-decimal flex-col gap-1 pl-5 text-sm leading-relaxed ${text}`}>
                 <li>Ответ на отклик в течение 3 рабочих дней</li>
                 <li>Созвон с инженером команды, 45 минут</li>
                 <li>Техническое интервью</li>
@@ -351,19 +334,13 @@ export default async function VacancyPage(props: PageProps<"/vacancies/[slug]">)
             ) : null}
 
             {similar.length ? (
-              <section className="flex flex-col gap-2.5">
+              <section className="flex flex-col gap-3">
                 <h2 className="m-0 mb-1 text-[15px] font-extrabold">Похожие вакансии</h2>
                 {similar.map((s) => (
-                  <Link
-                    key={s.id}
-                    href={`/vacancies/${s.slug}?from=similar`}
-                    className="flex flex-col gap-1 rounded-xl border border-line bg-card p-4 text-ink hover:border-ink"
-                  >
+                  <Link key={s.id} href={`/vacancies/${s.slug}?from=similar`} className={`neu-card-sm flex flex-col gap-1 p-5 ${text}`}>
                     <span className="text-[15px] font-extrabold leading-snug">{s.title}</span>
-                    <span className="font-mono text-sm font-semibold">
-                      {formatSalary(s.salaryFrom, s.salaryTo, s.currency)}
-                    </span>
-                    <span className="text-[13px] text-muted">
+                    <span className="font-mono text-sm font-semibold">{formatSalary(s.salaryFrom, s.salaryTo, s.currency)}</span>
+                    <span className={`text-[13px] ${muted}`}>
                       {s.company.name} · {formatLocation(s.city, s.workFormat, s.locationNote)}
                     </span>
                   </Link>

@@ -19,8 +19,9 @@ const themeScript = `(function(){try{if(localStorage.getItem('admin-theme')==='d
 
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const user = await requireRole("ADMIN", "/admin");
-  const [moderation, claims, running] = await Promise.all([
+  const [moderation, reports, claims, running] = await Promise.all([
     db.vacancy.count({ where: { status: "MODERATION" } }),
+    db.report.count({ where: { status: "OPEN" } }),
     db.companyClaim.count({ where: { status: "PENDING" } }),
     countRunningImports(),
   ]);
@@ -28,7 +29,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   return (
     <div className={inter.variable}>
       <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      <AdminShell user={{ name: user.name, email: user.email }} badges={{ moderation, claims, running: running > 0 }} logout={logoutAction}>
+      <AdminShell user={{ name: user.name, email: user.email }} badges={{ moderation: moderation + reports, claims, running: running > 0 }} logout={logoutAction}>
         {children}
       </AdminShell>
     </div>

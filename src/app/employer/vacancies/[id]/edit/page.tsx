@@ -51,13 +51,13 @@ export default async function EditVacancyPage(props: PageProps<"/employer/vacanc
             <h1 className="m-0 text-[30px] font-extrabold leading-tight tracking-tight">{v.title}</h1>
             <StatusBadge status={v.status} />
           </div>
-          <p className="m-0 text-[15px] text-muted">
+          <p className="m-0 text-[15px] text-[color:var(--soft-muted)]">
             {v.status === "PUBLISHED"
               ? "Вакансия опубликована. Правки применятся сразу после сохранения."
               : v.status === "MODERATION"
                 ? "Вакансия на модерации. Можно продолжать редактировать, на проверку уйдёт последняя версия."
                 : v.status === "REJECTED"
-                  ? "Модерация отклонила вакансию. Поправьте и отправьте снова."
+                  ? `Модерация отклонила вакансию${v.moderationComment ? `: ${v.moderationComment}` : ""}. Поправьте и отправьте снова.`
                   : "Черновик. Виден только вам."}
           </p>
         </div>
