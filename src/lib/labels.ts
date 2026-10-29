@@ -4,8 +4,30 @@ import type {
   Employment,
   ExperienceLevel,
   SalaryType,
+  SalaryPeriod,
   ApplicationStatus,
+  VacancySource,
 } from "@/generated/prisma/client";
+
+/** Как называем источник на сайте: «По данным Remotive», «с сайта работодателя» */
+export const SOURCE_LABEL: Record<VacancySource, string> = {
+  MANUAL: "",
+  REMOTIVE: "Remotive",
+  JOBICY: "Jobicy",
+  REMOTEOK: "Remote OK",
+  HIMALAYAS: "Himalayas",
+  ARBEITNOW: "Arbeitnow",
+  GREENHOUSE: "сайт работодателя",
+  LEVER: "сайт работодателя",
+  ASHBY: "сайт работодателя",
+};
+
+/** Доски ATS: вакансия опубликована самим работодателем на его сайте */
+export function isEmployerBoard(source: VacancySource): boolean {
+  return source === "GREENHOUSE" || source === "LEVER" || source === "ASHBY";
+}
+
+export const LANGUAGE_LABEL: Record<string, string> = { en: "English", de: "Deutsch", es: "Español", fr: "Français", pt: "Português", ru: "Русский" };
 
 export const APPLICATION_STATUS_LABEL: Record<ApplicationStatus, string> = {
   NEW: "новый",
@@ -66,7 +88,29 @@ const CURRENCY_SIGN: Record<string, string> = {
   RUB: "₽",
   USD: "$",
   EUR: "€",
+  GBP: "£",
+  KZT: "₸",
+  BYN: "Br",
+  UAH: "₴",
+  INR: "₹",
+  CAD: "C$",
+  AUD: "A$",
+  CHF: "CHF",
+  PLN: "zł",
+  SGD: "S$",
 };
+
+export const SALARY_PERIOD_LABEL: Record<SalaryPeriod, string> = {
+  MONTH: "в месяц",
+  YEAR: "в год",
+  HOUR: "в час",
+};
+
+/** Подпись периода только когда он не месячный: «$120 000 – 160 000 в год» */
+export function periodSuffix(period: SalaryPeriod | null | undefined, hasSalary: boolean): string {
+  if (!hasSalary || !period || period === "MONTH") return "";
+  return ` ${SALARY_PERIOD_LABEL[period]}`;
+}
 
 const nf = new Intl.NumberFormat("ru-RU");
 
@@ -111,8 +155,9 @@ export function formatVacancyCount(n: number): string {
   return `${nf.format(n)} ${plural(n, "вакансия", "вакансии", "вакансий")}`;
 }
 
-/** Место работы для карточки: «Москва · можно удалённо», «Удалённо (РФ)» */
-export function formatLocation(city: string | null, format: WorkFormat): string {
+/** Место работы для карточки: «Москва · можно удалённо», «Удалённо · Europe, USA», «Удалённо (РФ)» */
+export function formatLocation(city: string | null, format: WorkFormat, note?: string | null): string {
+  if (format === "REMOTE" && note) return city ? `${city} · удалённо · ${note}` : `Удалённо · ${note}`;
   if (format === "REMOTE") return city ? `${city} · удалённо` : "Удалённо (РФ)";
   if (format === "REMOTE_OR_OFFICE") return city ? `${city} · можно удалённо` : "Удалённо или офис";
   if (format === "HYBRID") return city ? `${city} · гибрид` : "Гибрид";

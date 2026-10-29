@@ -8,6 +8,7 @@ import {
   type ExperienceLevel,
 } from "../src/generated/prisma/client";
 import { hashPassword } from "../src/lib/password";
+import { skillSlug } from "../src/lib/slug";
 
 // Тестовые аккаунты (только для локальной разработки, пароль у всех: password123)
 const USERS = [
@@ -250,18 +251,11 @@ const VACANCIES: VacancySeed[] = [
 
 // ───────────────────────────── Загрузка ─────────────────────────────
 
-function slugify(s: string) {
-  return s
-    .toLowerCase()
-    .replace(/[^a-z0-9а-яё]+/gi, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 async function main() {
   console.log("Seeding skills…");
   const skillBySlug = new Map<string, string>();
   for (const name of SKILLS) {
-    const slug = slugify(name);
+    const slug = skillSlug(name);
     const skill = await db.skill.upsert({
       where: { slug },
       update: { name },
@@ -327,8 +321,8 @@ async function main() {
     const companyId = u.company ? companyBySlug.get(u.company) : undefined;
     await db.user.upsert({
       where: { email: u.email },
-      update: { name: u.name, role: u.role, companyId: companyId ?? null, emailVerifiedAt: new Date() },
-      create: { email: u.email, name: u.name, role: u.role, passwordHash, companyId: companyId ?? null, emailVerifiedAt: new Date() },
+      update: { name: u.name, role: u.role, companyId: companyId ?? null },
+      create: { email: u.email, name: u.name, role: u.role, passwordHash, companyId: companyId ?? null },
     });
   }
 

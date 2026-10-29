@@ -2,58 +2,45 @@
 
 import { useActionState } from "react";
 import { applyAction, type ApplyState } from "./actions";
-import { Turnstile } from "@/components/turnstile";
+import { Field, ErrorBanner, fieldCls, textareaCls } from "@/components/form";
 
-const label = "text-sm font-bold text-[color:var(--soft-text)]";
-const hint = "text-xs text-[color:var(--soft-muted)]";
+const darkField = `${fieldCls} border-header-line bg-[#1F2226] text-white placeholder:text-[#8A9098] focus:border-white focus:ring-white/10`;
+const darkArea = `${textareaCls} border-header-line bg-[#1F2226] text-white placeholder:text-[#8A9098] focus:border-white focus:ring-white/10`;
 
-export function ApplyForm({ slug, acceptsGithubLink, siteKey }: { slug: string; acceptsGithubLink: boolean; siteKey: string }) {
+export function ApplyForm({ slug, acceptsGithubLink }: { slug: string; acceptsGithubLink: boolean }) {
   const [state, action, pending] = useActionState<ApplyState, FormData>(applyAction, undefined);
 
   if (state?.success) {
     return (
-      <div role="status" className="neu-inset rounded-xl px-4 py-3 text-sm font-semibold text-[#1F6F58]">
+      <div role="status" className="rounded-lg border border-[#2F6F55] bg-[#1C3A2E] px-4 py-3 text-sm font-semibold text-[#BFE9D3]">
         {state.success}
       </div>
     );
   }
 
   return (
-    <form action={action} className="flex w-full flex-col gap-5">
+    <form action={action} className="flex w-full flex-col gap-4">
       <input type="hidden" name="slug" value={slug} />
-      {state?.error ? (
-        <div role="alert" className="neu-inset rounded-xl px-4 py-3 text-sm font-semibold text-[#B3261E]">
-          {state.error}
-        </div>
-      ) : null}
-      <div className="flex flex-wrap gap-5">
-        <div className="flex flex-[1_1_260px] flex-col gap-2">
-          <label htmlFor="resumeUrl" className={label}>
-            Ссылка на резюме
-          </label>
-          <input id="resumeUrl" name="resumeUrl" type="url" placeholder="https://" className="neu-field" />
-          <span className={hint}>Google Docs, hh.ru, PDF на диске, любая открытая ссылка</span>
-        </div>
+      <ErrorBanner message={state?.error} />
+      <div className="flex flex-wrap gap-4">
+        <Field label="Ссылка на резюме" htmlFor="resumeUrl" className="flex-[1_1_260px] text-white" hint="Google Docs, hh.ru, PDF на диске, любая открытая ссылка">
+          <input id="resumeUrl" name="resumeUrl" type="url" placeholder="https://" className={darkField} />
+        </Field>
         {acceptsGithubLink ? (
-          <div className="flex flex-[1_1_260px] flex-col gap-2">
-            <label htmlFor="githubUrl" className={label}>
-              GitHub
-            </label>
-            <input id="githubUrl" name="githubUrl" type="url" placeholder="https://github.com/username" className="neu-field" />
-            <span className={hint}>Работодатель принимает отклик без резюме, по коду</span>
-          </div>
+          <Field label="GitHub" htmlFor="githubUrl" className="flex-[1_1_260px] text-white" hint="Работодатель принимает отклик без резюме, по коду">
+            <input id="githubUrl" name="githubUrl" type="url" placeholder="https://github.com/username" className={darkField} />
+          </Field>
         ) : null}
       </div>
-      <div className="flex flex-col gap-2">
-        <label htmlFor="coverLetter" className={label}>
-          Пара слов о себе
-        </label>
-        <textarea id="coverLetter" name="coverLetter" rows={4} className="neu-field py-3 leading-relaxed" style={{ minHeight: 0 }} />
-        <span className={hint}>Чем занимались, почему эта вакансия. Необязательно.</span>
-      </div>
-      <Turnstile siteKey={siteKey} />
+      <Field label="Пара слов о себе" htmlFor="coverLetter" className="text-white" hint="Чем занимались, почему эта вакансия. Необязательно.">
+        <textarea id="coverLetter" name="coverLetter" rows={4} className={darkArea} />
+      </Field>
       <div>
-        <button type="submit" disabled={pending} className="neu-primary-sm" style={{ minHeight: 48, padding: "0 24px", fontSize: 15 }}>
+        <button
+          type="submit"
+          disabled={pending}
+          className="inline-flex min-h-12 items-center rounded-[10px] bg-accent px-6 text-[15px] font-extrabold text-ink hover:brightness-95 disabled:opacity-60"
+        >
           {pending ? "Отправляем…" : "Отправить отклик"}
         </button>
       </div>

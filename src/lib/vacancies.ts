@@ -63,27 +63,13 @@ export function parseFilters(params: RawParams): VacancyFilters {
   };
 }
 
-/**
- * Полнотекстовый поиск с русской морфологией по колонке search (tsvector, GENERATED).
- * Возвращает id подходящих вакансий; Prisma не умеет tsvector, поэтому сырой SQL.
- */
-async function fullTextIds(q: string): Promise<string[]> {
-  const rows = await db.$queryRaw<{ id: string }[]>`
-    SELECT "id" FROM "Vacancy"
-    WHERE "status" = 'PUBLISHED' AND "search" @@ plainto_tsquery('russian', ${q})
-    LIMIT 2000`;
-  return rows.map((r) => r.id);
-}
-
-function buildWhere(f: VacancyFilters, ftsIds: string[] | null): Prisma.VacancyWhereInput {
+function buildWhere(f: VacancyFilters): Prisma.VacancyWhereInput {
   const where: Prisma.VacancyWhereInput = { status: "PUBLISHED" };
   const and: Prisma.VacancyWhereInput[] = [];
 
   if (f.q) {
-    // Морфология по тексту + точное вхождение по названию компании и технологиям
     and.push({
       OR: [
-        ...(ftsIds?.length ? [{ id: { in: ftsIds } }] : []),
         { title: { contains: f.q, mode: "insensitive" } },
         { company: { name: { contains: f.q, mode: "insensitive" } } },
         { skills: { some: { skill: { name: { contains: f.q, mode: "insensitive" } } } } },
@@ -124,15 +110,14 @@ function buildWhere(f: VacancyFilters, ftsIds: string[] | null): Prisma.VacancyW
 }
 
 export const vacancyCardInclude = {
-  company: { select: { slug: true, name: true, initials: true } },
+  company: { select: { slug: true, name: true, initials: true, logoUrl: true } },
   skills: { orderBy: { order: "asc" }, include: { skill: true } },
 } satisfies Prisma.VacancyInclude;
 
 export type VacancyCard = Prisma.VacancyGetPayload<{ include: typeof vacancyCardInclude }>;
 
 export async function searchVacancies(f: VacancyFilters) {
-  const ftsIds = f.q ? await fullTextIds(f.q) : null;
-  const where = buildWhere(f, ftsIds);
+  const where = buildWhere(f);
   const page = f.page ?? 1;
   const orderBy: Prisma.VacancyOrderByWithRelationInput[] =
     f.sort === "salary"

@@ -28,3 +28,9 @@ export async function uniqueSlug(base: string, exists: (slug: string) => Promise
   }
   return candidate;
 }
+
+/** Slug технологии: «C#» → csharp, «C++» → cplusplus, «.NET» → dotnet, «Node.js» → node-js */
+export function skillSlug(name: string): string {
+  const prepared = name.trim().replace(/#/g, "sharp").replace(/\+/g, "plus").replace(/^\./, "dot");
+  return slugify(prepared) || `skill-${Buffer.from(name).toString("hex").slice(0, 12)}`;
+}

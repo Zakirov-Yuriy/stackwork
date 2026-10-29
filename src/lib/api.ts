@@ -5,7 +5,9 @@ import {
   EMPLOYMENT_LABEL,
   EXPERIENCE_LABEL,
   SALARY_TYPE_LABEL,
+  SOURCE_LABEL,
   formatSalary,
+  periodSuffix,
 } from "@/lib/labels";
 
 /**
@@ -22,7 +24,15 @@ export function toVacancyDto(v: VacancyCard) {
       slug: v.company.slug,
       name: v.company.name,
       initials: v.company.initials,
+      logoUrl: v.company.logoUrl,
     },
+    // Откуда вакансия: MANUAL (работодатель на Stackwork) или площадка-источник
+    source: v.source,
+    sourceLabel: SOURCE_LABEL[v.source] || null,
+    externalUrl: v.externalUrl,
+    applyUrl: v.applyUrl,
+    language: v.language,
+    locationNote: v.locationNote,
     direction: v.direction,
     grade: v.grade,
     gradeLabel: GRADE_LABEL[v.grade],
@@ -39,7 +49,8 @@ export function toVacancyDto(v: VacancyCard) {
       currency: v.currency,
       type: v.salaryType,
       typeLabel: SALARY_TYPE_LABEL[v.salaryType],
-      formatted: formatSalary(v.salaryFrom, v.salaryTo, v.currency),
+      period: v.salaryPeriod,
+      formatted: `${formatSalary(v.salaryFrom, v.salaryTo, v.currency)}${periodSuffix(v.salaryPeriod, Boolean(v.salaryFrom || v.salaryTo))}`,
     },
     skills: v.skills.map((s) => ({ slug: s.skill.slug, name: s.skill.name })),
     acceptsGithubLink: v.acceptsGithubLink,

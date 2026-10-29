@@ -9,7 +9,7 @@ type Values = { name: string; description: string; industry: string; city: strin
 export function CompanyForm({ initial }: { initial: Values }) {
   const [state, action, pending] = useActionState<VacancyActionState, FormData>(updateCompanyAction, undefined);
   return (
-    <form action={action} className="neu-card flex max-w-[640px] flex-col gap-[18px] p-7">
+    <form action={action} className="flex max-w-[640px] flex-col gap-[18px] rounded-xl border border-line bg-card p-6">
       <ErrorBanner message={state?.error} />
       <SuccessBanner message={state?.success} />
       <Field label="Название" htmlFor="name">

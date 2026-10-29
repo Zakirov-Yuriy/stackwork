@@ -37,18 +37,15 @@ export async function verifySession(token: string): Promise<SessionPayload | nul
   }
 }
 
-/**
- * Вызывать только из Server Function или Route Handler.
- * persistent=false: cookie живёт до закрытия браузера (токен внутри всё равно на 30 дней).
- */
-export async function setSessionCookie(payload: SessionPayload, opts: { persistent?: boolean } = { persistent: true }) {
+/** Вызывать только из Server Function или Route Handler. */
+export async function setSessionCookie(payload: SessionPayload) {
   const token = await signSession(payload);
   (await cookies()).set(COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    ...(opts.persistent === false ? {} : { maxAge: MAX_AGE_SEC }),
+    maxAge: MAX_AGE_SEC,
   });
 }
 
@@ -65,7 +62,6 @@ async function readToken(authorization?: string | null): Promise<string | null> 
 export const currentUserSelect = {
   id: true,
   email: true,
-  emailVerifiedAt: true,
   name: true,
   role: true,
   companyId: true,
