@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "@/i18n/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
+import { LOGO_MAX_BYTES, removeCompanyLogo, saveCompanyLogo } from "@/lib/company-logo";
 import { slugify, skillSlug, uniqueSlug } from "@/lib/slug";
 import { parseVacancyForm, moderationChecks, type VacancyInput } from "@/lib/vacancy-form";
 
@@ -146,15 +147,34 @@ export async function updateCompanyAction(_prev: VacancyActionState, formData: F
     .map((w) => w[0]?.toUpperCase() ?? "")
     .join("");
 
-  if (user.companyId) {
-    await db.company.update({ where: { id: user.companyId }, data: { name, description, industry, city, website, initials } });
+  // Логотип: файл проверяем до записи компании, чтобы не сохранить половину формы
+  const logoFile = formData.get("logo");
+  const logo = logoFile instanceof File && logoFile.size > 0 ? logoFile : null;
+  const removeLogo = formData.get("removeLogo") === "1";
+  if (logo && logo.size > LOGO_MAX_BYTES) return { error: t("errors.logoTooBig") };
+
+  let companyId = user.companyId;
+  if (companyId) {
+    await db.company.update({ where: { id: companyId }, data: { name, description, industry, city, website, initials } });
   } else {
     const slug = await uniqueSlug(slugify(name) || "company", (s) =>
       db.company.findUnique({ where: { slug: s }, select: { id: true } }).then(Boolean),
     );
     const company = await db.company.create({ data: { slug, name, description, industry, city, website, initials } });
     await db.user.update({ where: { id: user.id }, data: { companyId: company.id } });
+    companyId = company.id;
   }
+
+  if (logo) {
+    const problem = await saveCompanyLogo(companyId, logo);
+    if (problem === "type") return { error: t("errors.logoType") };
+    if (problem === "size") return { error: t("errors.logoTooBig") };
+    if (problem === "broken") return { error: t("errors.logoBroken") };
+  } else if (removeLogo) {
+    await removeCompanyLogo(companyId);
+  }
+
   revalidatePath("/employer");
+  revalidatePath("/employer/company");
   return { success: t("company.saved") };
 }

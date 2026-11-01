@@ -61,7 +61,10 @@
       "website": "Website",
       "about": "About the company",
       "aboutHint": "Two or three sentences: what you do and what the team is like",
-      "saving": "Saving…"
+      "saving": "Saving…",
+      "logo": "Logo",
+      "logoHint": "PNG, JPG, WebP or SVG up to 2 MB. It will be fitted into a 256×256 square; a mark without text looks best.",
+      "logoRemove": "Remove logo"
     }
   },
   "responses": {
@@ -180,6 +183,9 @@
     "beforeModeration": "Before submitting for review: {list}",
     "vacancyNotFound": "Job not found",
     "companyNameRequired": "Enter the company name",
-    "websiteProtocol": "The website must start with http:// or https://"
+    "websiteProtocol": "The website must start with http:// or https://",
+    "logoTooBig": "The logo file is larger than 2 MB",
+    "logoType": "The logo must be an image: PNG, JPG, WebP, SVG or GIF",
+    "logoBroken": "Could not read the image, try another file"
   }
 }

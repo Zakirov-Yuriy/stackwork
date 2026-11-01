@@ -69,7 +69,7 @@ export const currentUserSelect = {
   name: true,
   role: true,
   companyId: true,
-  company: { select: { id: true, slug: true, name: true, initials: true } },
+  company: { select: { id: true, slug: true, name: true, initials: true, logoUrl: true } },
 } as const;
 
 /** Текущий пользователь или null. Кэшируется на время одного запроса. */

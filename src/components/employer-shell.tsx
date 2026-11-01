@@ -3,6 +3,8 @@ import { Link } from "@/i18n/navigation";
 import { logoutAction } from "@/app/[locale]/(auth)/actions";
 import type { CurrentUser } from "@/lib/session";
 import { MobileMenu } from "./mobile-menu";
+import { BrandMark } from "./brand-mark";
+import { CompanyAvatar } from "./company-avatar";
 
 /** Шапка кабинета работодателя: своё меню и бейдж «для работодателей». */
 export async function EmployerHeader({ user, active }: { user: CurrentUser; active: "vacancies" | "responses" | "company" | "billing" }) {
@@ -16,9 +18,7 @@ export async function EmployerHeader({ user, active }: { user: CurrentUser; acti
     <header className="soft-page">
       <div className="mx-auto flex min-h-[76px] max-w-[1180px] flex-wrap items-center gap-x-6 gap-y-3 px-6 py-3">
         <Link href="/employer" className="flex items-center gap-2.5 text-[22px] font-extrabold tracking-tight text-[color:var(--soft-text)]">
-          <span aria-hidden="true" className="neu-raised inline-flex h-10 w-10 items-center justify-center rounded-xl font-mono text-sm font-semibold text-[color:var(--soft-blue)]">
-            &lt;/&gt;
-          </span>
+          <BrandMark size={40} />
           <span>stackwork</span>
           <span className="neu-inset rounded-lg px-2.5 py-1 text-xs font-semibold tracking-[0.04em] text-[color:var(--soft-muted)]">{t("nav.badge")}</span>
         </Link>
@@ -31,9 +31,7 @@ export async function EmployerHeader({ user, active }: { user: CurrentUser; acti
         </nav>
         <div className="flex flex-wrap items-center gap-3 md:ml-auto">
           <span className="inline-flex min-h-11 items-center gap-2.5 text-sm font-semibold text-[color:var(--soft-text)]">
-            <span aria-hidden="true" className="chip-blue inline-flex h-8 w-8 items-center justify-center rounded-lg text-[13px] font-extrabold">
-              {user.company?.initials ?? "?"}
-            </span>
+            <CompanyAvatar name={user.company?.name ?? "?"} logoUrl={user.company?.logoUrl} initials={user.company?.initials ?? "?"} size={32} rounded={8} />
             <span>{user.company?.name ?? t("nav.noCompany")}</span>
           </span>
           <Link href="/" className="neu-btn-sm">

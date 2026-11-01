@@ -33,6 +33,8 @@ export default async function CompanyPage() {
             industry: company?.industry ?? "",
             city: company?.city ?? "",
             website: company?.website ?? "",
+            logoUrl: company?.logoUrl ?? null,
+            initials: company?.initials ?? null,
           }}
         />
       </main>

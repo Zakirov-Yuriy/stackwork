@@ -116,6 +116,16 @@ model Company {
   members   User[]
   vacancies Vacancy[]
   claims    CompanyClaim[]
+  logo      CompanyLogo?
+}
+
+/// Логотип, загруженный работодателем: квадрат 256×256 в WebP, отдаётся по /api/company-logo/<companyId>
+model CompanyLogo {
+  companyId String   @id
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  data      Bytes
+  mime      String   @default("image/webp")
+  updatedAt DateTime @updatedAt
 }
 
 enum ClaimStatus {
