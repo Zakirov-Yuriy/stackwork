@@ -124,14 +124,13 @@ export async function runSource(
 export async function runImport(opts: { sources?: VacancySource[]; trigger: ImportTrigger; userId?: string | null; budgetMs?: number }): Promise<RunSummary[]> {
   const settings = await getImportSettings();
   const all = (opts.sources?.length ? opts.sources : settings.enabledSources).filter(isImportSource);
-  // Самые быстрые источники первыми, Remotive (с паузами между запросами) последним
-  const list = [...all].sort((a, b) => (a === "REMOTIVE" ? 1 : 0) - (b === "REMOTIVE" ? 1 : 0));
+  const list = [...all];
   const budget = opts.budgetMs ?? 240_000;
   const started = Date.now();
   const results: RunSummary[] = [];
   for (const source of list) {
     const elapsed = Date.now() - started;
-    const estimate = source === "REMOTIVE" ? 110_000 : 30_000;
+    const estimate = 30_000;
     if (elapsed + estimate > budget) {
       const run = await db.importRun.create({
         data: { source, trigger: opts.trigger, triggeredBy: opts.userId ?? null, status: "ERROR", finishedAt: new Date(), error: "Пропущен: не хватило времени в этом запуске, пойдёт в следующий" },

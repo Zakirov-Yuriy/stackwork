@@ -57,8 +57,8 @@ export default async function ImportPage(props: PageProps<"/admin/import">) {
         }
       />
 
-      {sp.busy ? <div className="mb-4 rounded-md bg-[var(--a-warning-soft)] px-4 py-3 text-sm text-[#d99500]">Импорт уже идёт, подождите, пока он закончится.</div> : null}
-      {sp.started && isRunning ? <div className="mb-4 rounded-md bg-[var(--a-info-soft)] px-4 py-3 text-sm text-[#03a9d1]">Импорт запущен. Страница обновится сама, обычно это занимает до минуты (Remotive дольше: источник просит паузу между запросами).</div> : null}
+      {sp.busy && isRunning ? <div className="mb-4 rounded-md bg-[var(--a-warning-soft)] px-4 py-3 text-sm text-[#d99500]">Импорт уже идёт, подождите, пока он закончится.</div> : null}
+      {sp.started && isRunning ? <div className="mb-4 rounded-md bg-[var(--a-info-soft)] px-4 py-3 text-sm text-[#03a9d1]">Импорт запущен. Страница обновится сама, обычно это занимает одну-две минуты.</div> : null}
 
       <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {ADAPTERS.map((a) => {
