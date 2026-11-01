@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/guards";
-import { logoutAction } from "@/app/(auth)/actions";
+import { logoutAction } from "@/app/[locale]/(auth)/actions";
 import { AdminShell } from "@/components/admin/shell";
 import { countRunningImports } from "@/lib/import/run";
 

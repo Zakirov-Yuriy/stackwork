@@ -1,0 +1,61 @@
+{
+  "meta": {
+    "title": "Stackwork: IT jobs with the salary shown",
+    "description": "Jobs for developers, DevOps, data, QA and analytics. Salary range and tech stack are visible on every card."
+  },
+  "nav": {
+    "label": "Main menu",
+    "vacancies": "Jobs",
+    "companies": "Companies",
+    "salaries": "Salaries by stack",
+    "employers": "For employers",
+    "cabinet": "Dashboard",
+    "admin": "Admin",
+    "myResponses": "My applications",
+    "logout": "Log out",
+    "postVacancy": "Post a job",
+    "login": "Log in"
+  },
+  "menu": {
+    "label": "Menu",
+    "open": "Open menu",
+    "close": "Close menu"
+  },
+  "locale": {
+    "label": "Language",
+    "ru": "Русский",
+    "en": "English"
+  },
+  "footer": {
+    "tagline": "IT job board where every listing shows the salary. For developers and the people hiring them.",
+    "seekers": "Job seekers",
+    "employers": "Employers",
+    "documents": "Documents",
+    "vacancies": "Jobs",
+    "myResponses": "My applications",
+    "salaries": "Salaries by stack",
+    "companies": "Companies",
+    "postVacancy": "Post a job",
+    "pricing": "Pricing",
+    "cabinet": "Dashboard",
+    "privacy": "Privacy policy",
+    "consent": "Consent to data processing",
+    "terms": "Terms of use",
+    "copyright": "© 2026 stackwork",
+    "operator": "[DATA OPERATOR DETAILS]"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "more": "Details",
+    "close": "Close",
+    "send": "Send",
+    "search": "Search",
+    "reset": "Reset",
+    "share": "Share",
+    "copied": "Link copied",
+    "copy": "Copy link"
+  },
+  "toVacancies": "Back to jobs"
+}

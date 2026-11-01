@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ShareIcon } from "./icons";
 
 /** Поделиться: системный диалог на телефоне, иначе копирование ссылки. */
 export function ShareButton({ title, path }: { title: string; path: string }) {
+  const t = useTranslations("home.card");
+  const tc = useTranslations("common");
   const [done, setDone] = useState(false);
 
   async function share() {
@@ -23,10 +26,10 @@ export function ShareButton({ title, path }: { title: string; path: string }) {
   }
 
   return (
-    <button type="button" onClick={share} aria-label="Поделиться вакансией" title="Поделиться" className="neu-btn-sm h-12 px-3">
+    <button type="button" onClick={share} aria-label={t("share")} title={tc("actions.share")} className="neu-btn-sm h-12 px-3">
       <ShareIcon />
       <span aria-live="polite" className={done ? "text-sm" : "sr-only"}>
-        {done ? "Ссылка скопирована" : "Поделиться"}
+        {done ? tc("actions.copied") : tc("actions.share")}
       </span>
     </button>
   );

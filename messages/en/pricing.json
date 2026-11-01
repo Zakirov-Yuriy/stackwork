@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "title": "Pricing for employers"
+  },
+  "title": "Posting jobs is free",
+  "lead": "While the platform is growing, posting jobs and accessing applications cost nothing. The only condition: the job lists a salary range and passes manual moderation.",
+  "cards": {
+    "publish": {
+      "title": "Posting",
+      "text": "Unlimited jobs. Moderation usually takes one business day."
+    },
+    "applications": {
+      "title": "Applications",
+      "text": "Resumes, GitHub profiles and cover letters in your dashboard. Email notifications."
+    },
+    "next": {
+      "title": "What's next",
+      "text": "Paid plans will come later and will only cover promotion. Basic posting stays free for those who joined early."
+    }
+  },
+  "cta": "Post a job"
+}

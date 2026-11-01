@@ -1,0 +1,37 @@
+{
+  "list": {
+    "title": "Companies",
+    "description": "Companies hiring IT professionals on Stackwork.",
+    "count": "{count, plural, one {# company} other {# companies}} with open jobs",
+    "emptyTitle": "Nothing here yet",
+    "emptyText": "Companies will appear as soon as the first jobs are published."
+  },
+  "page": {
+    "notFound": "Company not found",
+    "metaTitle": "{name}: jobs",
+    "metaDescription": "Jobs at {name} on Stackwork",
+    "breadcrumbs": "Breadcrumbs",
+    "external": "This page was compiled from public sources. <link>Is this your company? Claim the page</link> to manage jobs and receive applications.",
+    "openCount": "{count, plural, one {# open job} other {# open jobs}}",
+    "noVacancies": "This company has no open jobs right now."
+  },
+  "claim": {
+    "title": "Is this your company?",
+    "text": "This company page and its jobs were compiled from public sources. If you represent the company, claim the page: after verification you will get an employer dashboard, be able to edit jobs, post new ones for free and receive applications directly on Stackwork.",
+    "alreadyClaimed": "This page has already been verified by the employer.",
+    "registerEmployer": "Sign up as an employer",
+    "haveAccount": "Already have an account",
+    "form": {
+      "message": "A few words about yourself",
+      "messageHint": "Your position, a work email on the company domain or a link to your profile: this helps us verify the request faster.",
+      "sending": "Sending…",
+      "submit": "Submit request"
+    },
+    "errors": {
+      "employerOnly": "Only an employer account can submit a request. Sign up for an employer account or log in to one.",
+      "claimedByOther": "This page has already been verified by another employer. Contact us if this is a mistake."
+    },
+    "pending": "Your request has already been submitted and is being reviewed.",
+    "sent": "Request submitted. We will verify that you represent {name} and connect the dashboard: the company's jobs will appear under “My jobs”."
+  }
+}

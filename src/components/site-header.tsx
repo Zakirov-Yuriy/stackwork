@@ -1,14 +1,17 @@
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import NextLink from "next/link";
+import { Link } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { logoutAction } from "@/app/(auth)/actions";
+import { logoutAction } from "@/app/[locale]/(auth)/actions";
 import { BrandMark } from "@/components/brand-mark";
 import { MobileMenu } from "./mobile-menu";
+import { LocaleSwitcher } from "./locale-switcher";
 
 const navLink = "text-[color:var(--soft-muted)] hover:text-[color:var(--soft-text)]";
 
 export async function SiteHeader() {
-  const user = await getCurrentUser();
-  const cabinet = user?.role === "EMPLOYER" ? "/employer" : user?.role === "ADMIN" ? "/admin" : "/me";
+  const [user, t] = await Promise.all([getCurrentUser(), getTranslations("common")]);
+  const cabinet = user?.role === "EMPLOYER" ? "/employer" : "/me";
 
   return (
     <header className="soft-page">
@@ -18,41 +21,49 @@ export async function SiteHeader() {
           <span>stackwork</span>
         </Link>
 
-        <MobileMenu>
-          <nav aria-label="Основное меню" className="flex flex-col gap-3 text-[15px] font-semibold md:flex-row md:flex-wrap md:gap-6">
+        <MobileMenu label={t("menu.label")} openLabel={t("menu.open")} closeLabel={t("menu.close")}>
+          <nav aria-label={t("nav.label")} className="flex flex-col gap-3 text-[15px] font-semibold md:flex-row md:flex-wrap md:gap-6">
             <Link href="/" className={navLink}>
-              Вакансии
+              {t("nav.vacancies")}
             </Link>
             <Link href="/companies" className={navLink}>
-              Компании
+              {t("nav.companies")}
             </Link>
             <Link href="/salaries" className={navLink}>
-              Зарплаты по стеку
+              {t("nav.salaries")}
             </Link>
             <Link href="/employer" className={navLink}>
-              Работодателям
+              {t("nav.employers")}
             </Link>
           </nav>
           <div className="flex flex-wrap items-center gap-3 md:ml-auto">
+            <LocaleSwitcher />
             {user ? (
               <>
-                <Link href={cabinet} className="neu-btn-sm">
-                  {user.role === "EMPLOYER" ? (user.company?.name ?? "Кабинет") : user.role === "ADMIN" ? "Админка" : "Мои отклики"}
-                </Link>
+                {user.role === "ADMIN" ? (
+                  // Админка вне языковых маршрутов: ссылка без префикса /en
+                  <NextLink href="/admin" className="neu-btn-sm">
+                    {t("nav.admin")}
+                  </NextLink>
+                ) : (
+                  <Link href={cabinet} className="neu-btn-sm">
+                    {user.role === "EMPLOYER" ? (user.company?.name ?? t("nav.cabinet")) : t("nav.myResponses")}
+                  </Link>
+                )}
                 <span className="text-sm font-semibold text-[color:var(--soft-muted)]">{user.name ?? user.email}</span>
                 <form action={logoutAction}>
                   <button type="submit" className="neu-btn-sm">
-                    Выйти
+                    {t("nav.logout")}
                   </button>
                 </form>
               </>
             ) : (
               <>
                 <Link href="/register?role=employer" className="neu-btn-sm">
-                  Разместить вакансию
+                  {t("nav.postVacancy")}
                 </Link>
                 <Link href="/login" className="neu-primary-sm">
-                  Войти
+                  {t("nav.login")}
                 </Link>
               </>
             )}

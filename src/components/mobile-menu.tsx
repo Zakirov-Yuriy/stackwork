@@ -6,7 +6,17 @@ import { useState } from "react";
  * Обёртка для меню на узких экранах: кнопка-гамбургер и раскрывающийся блок.
  * На md+ дети показываются всегда, кнопка скрыта.
  */
-export function MobileMenu({ children, label = "Меню" }: { children: React.ReactNode; label?: string }) {
+export function MobileMenu({
+  children,
+  label = "Меню",
+  openLabel = "Открыть меню",
+  closeLabel = "Закрыть меню",
+}: {
+  children: React.ReactNode;
+  label?: string;
+  openLabel?: string;
+  closeLabel?: string;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -14,7 +24,7 @@ export function MobileMenu({ children, label = "Меню" }: { children: React.R
         type="button"
         aria-expanded={open}
         aria-controls="mobile-menu"
-        aria-label={open ? "Закрыть меню" : "Открыть меню"}
+        aria-label={open ? closeLabel : openLabel}
         onClick={() => setOpen((v) => !v)}
         className="neu-btn-sm ml-auto h-11 w-11 px-0 md:hidden"
       >

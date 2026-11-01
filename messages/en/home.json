@@ -1,0 +1,55 @@
+{
+  "hero": {
+    "title": "Jobs for IT only",
+    "text": "Development, DevOps, data, QA, analytics. Salary and tech stack are visible on every card, with filters by level and work format."
+  },
+  "search": {
+    "query": "Job title, tech stack or company",
+    "cityLabel": "City or remote",
+    "cityPlaceholder": "City or “remote”"
+  },
+  "popular": "Popular:",
+  "summary": {
+    "query": "“{q}”"
+  },
+  "sort": {
+    "label": "Sort by",
+    "date": "Date",
+    "salary": "Salary"
+  },
+  "empty": {
+    "title": "Nothing found",
+    "text": "Try removing some filters or changing your query.",
+    "reset": "Reset filters"
+  },
+  "pagination": {
+    "label": "Pages",
+    "next": "Next"
+  },
+  "filters": {
+    "title": "Filters",
+    "titleCount": "Filters ({count})",
+    "format": "Work format",
+    "grade": "Level",
+    "salaryFrom": "Salary from",
+    "salaryPlaceholder": "150,000",
+    "experience": "Experience",
+    "anyExperience": "Any",
+    "stack": "Tech stack",
+    "employment": "Employment",
+    "employmentFull": "Full-time",
+    "employmentPart": "Part-time",
+    "employmentContract": "Contract",
+    "show": "Show {count}"
+  },
+  "card": {
+    "net": "Net",
+    "githubApply": "Apply with a GitHub link",
+    "apply": "Apply",
+    "save": "Save job",
+    "unsave": "Remove from saved",
+    "saved": "Saved",
+    "toSaved": "Save for later",
+    "share": "Share this job"
+  }
+}

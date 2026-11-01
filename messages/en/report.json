@@ -1,0 +1,28 @@
+{
+  "title": "Report this job",
+  "notFound": "Job not found. Open the report from the job page.",
+  "backToVacancy": "Back to the job",
+  "form": {
+    "reason": "Reason",
+    "comment": "Comment",
+    "commentHint": "What exactly is wrong. Optional.",
+    "email": "Your email",
+    "emailHint": "In case we need to clarify the details. Optional.",
+    "sending": "Sending…",
+    "submit": "Send report"
+  },
+  "reasons": {
+    "salary": "The salary in the description does not match the range",
+    "discrimination": "Age, gender or nationality requirements",
+    "fraud": "Fraud or paid job placement",
+    "outdated": "The job is no longer relevant",
+    "other": "Other"
+  },
+  "errors": {
+    "noReason": "Choose a reason",
+    "tooMany": "Too many reports in the last hour. Please try again later",
+    "captcha": "The “I’m not a robot” check failed. Reload the page and try again",
+    "notFound": "Job not found"
+  },
+  "success": "Thank you, your report has been sent. A moderator will review the job within one business day."
+}

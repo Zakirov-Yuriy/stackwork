@@ -13,6 +13,22 @@ export const DIRECTIONS = [
   "Безопасность",
 ] as const;
 
+export type Direction = (typeof DIRECTIONS)[number];
+
+/** Ключ перевода для подписи направления: employer.vacancyForm.directions.<ключ>. Значения DIRECTIONS хранятся в базе как есть. */
+export const DIRECTION_KEY: Record<Direction, string> = {
+  Backend: "backend",
+  Frontend: "frontend",
+  Fullstack: "fullstack",
+  Mobile: "mobile",
+  "DevOps / SRE": "devops",
+  "Data / ML": "data",
+  QA: "qa",
+  Аналитика: "analytics",
+  Менеджмент: "management",
+  Безопасность: "security",
+};
+
 export const CURRENCIES = ["RUB", "USD", "EUR"] as const;
 
 const GRADES: Grade[] = ["JUNIOR", "MIDDLE", "SENIOR", "LEAD"];
@@ -103,26 +119,46 @@ export function parseVacancyForm(fd: FormData): VacancyInput {
   };
 }
 
-export type Check = { ok: boolean; text: string };
+export type Check = { id: string; ok: boolean; text: string };
+
+/** Ключи сообщений проверок в employer.vacancyForm.checks */
+export type CheckMessageKey =
+  | "titleMin"
+  | "salaryOk"
+  | "salaryMissing"
+  | "stackOk"
+  | "stackCount"
+  | "sectionsOk"
+  | "sectionsEmpty"
+  | "discriminatory"
+  | "noDiscrimination";
+
+/**
+ * Переводчик текстов проверок: useTranslations("employer.vacancyForm.checks") на клиенте
+ * или getTranslations("employer.vacancyForm.checks") в server action.
+ */
+export type CheckTranslator = (key: CheckMessageKey, values?: Record<string, number>) => string;
 
 /**
  * Проверки перед отправкой на модерацию. Черновик можно сохранить с любыми ошибками,
  * на модерацию уходит только вакансия, где все проверки зелёные.
  */
-export function moderationChecks(v: VacancyInput): Check[] {
+export function moderationChecks(v: VacancyInput, t: CheckTranslator): Check[] {
   const hasSalary = Boolean(v.salaryFrom || v.salaryTo);
   const rangeOk = !v.salaryFrom || !v.salaryTo || v.salaryFrom <= v.salaryTo;
   const text = [v.title, v.aboutTeam, v.responsibilities, v.requirements, v.conditions].join(" ").toLowerCase();
+  // Требования к возрасту и полу: ищем по русским формулировкам, как их обычно пишут в вакансиях
   const discriminatory = /\b(до|от|младше|старше)\s*\d{2}\s*лет\b|\bтолько\s+(муж|жен)|\bпол:\s*(м|ж)/i.test(text);
 
   return [
-    { ok: v.title.length >= 8, text: "Название вакансии от 8 символов" },
-    { ok: hasSalary && rangeOk, text: hasSalary ? "Зарплатная вилка указана" : "Зарплатная вилка не указана: без неё не публикуем" },
-    { ok: v.skills.length >= 3, text: v.skills.length >= 3 ? "Стек заполнен, минимум 3 технологии" : `Стек: ${v.skills.length} из 3 минимум` },
+    { id: "title", ok: v.title.length >= 8, text: t("titleMin") },
+    { id: "salary", ok: hasSalary && rangeOk, text: hasSalary ? t("salaryOk") : t("salaryMissing") },
+    { id: "stack", ok: v.skills.length >= 3, text: v.skills.length >= 3 ? t("stackOk") : t("stackCount", { count: v.skills.length }) },
     {
+      id: "sections",
       ok: Boolean(v.responsibilities && v.requirements),
-      text: v.responsibilities && v.requirements ? "Разделы «задачи» и «что важно» заполнены" : "Разделы «задачи» и «что важно» пустые",
+      text: v.responsibilities && v.requirements ? t("sectionsOk") : t("sectionsEmpty"),
     },
-    { ok: !discriminatory, text: discriminatory ? "Похоже на требования к возрасту или полу: они запрещены законом о занятости" : "Нет требований к возрасту и полу" },
+    { id: "discrimination", ok: !discriminatory, text: discriminatory ? t("discriminatory") : t("noDiscrimination") },
   ];
 }

@@ -1,0 +1,15 @@
+{
+  "notice": "This document is available in Russian only; the Russian version is legally binding.",
+  "privacy": {
+    "title": "Personal Data Processing Policy",
+    "intro": "What data Stackwork collects, why, how long it is kept and how to delete it."
+  },
+  "consent": {
+    "title": "Consent to Personal Data Processing",
+    "intro": "The consent users give when signing up and applying for a job."
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "intro": "Platform rules for job seekers and employers."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "home": "Go to homepage",
+  "notFound": {
+    "title": "Page not found",
+    "text": "The job may have been unpublished or the link is out of date.",
+    "cta": "Back to jobs"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "text": "We already know about the error. Try reloading the page; if that doesn't help, go back to the homepage.",
+    "code": "Code: {digest}",
+    "retry": "Try again"
+  },
+  "forbidden": {
+    "title": "This section is not for your role",
+    "text": "The employer dashboard is available to accounts with the “Hiring” role. If you are looking for a job, go to “My applications”."
+  }
+}

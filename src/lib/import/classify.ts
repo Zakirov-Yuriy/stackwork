@@ -12,7 +12,7 @@ const NOT_IT_TITLE =
   /\b(sales|account (executive|manager)|business development|sdr|bdr|marketing|growth|seo\b|content (writer|creator|marketer)|copywriter|social media|community manager|recruiter|recruiting|talent|hr\b|people (ops|partner)|customer (success|support|service|care)|virtual assistant|executive assistant|office manager|operations manager|finance|accountant|accounting|bookkeep|payroll|legal|counsel|paralegal|nurse|physician|therapist|teacher|tutor|coach|designer|ux|ui\/ux|illustrator|video editor|translator|interpreter|transcri|data entry|clinical|medical|real estate|insurance|underwrit|collections|dispatcher|driver|warehouse|chef|barista|retail|cashier|brand|pr manager|partnership|affiliate|influencer|enrollment|admissions|fundrais|grant writer|event)\b/i;
 
 const HARD_NO =
-  /\b(sales engineer|pre-?sales|solutions? engineer|solutions? consultant|customer engineer|electrical engineer|mechanical engineer|civil engineer|hardware engineer|marketing engineer|rater|annotat\w*|labell?ing|transcri\w*|moderator|evaluator|product lead|design lead)\b/i;
+  /\b(sales engineer|pre-?sales|solutions? engineer|solutions? consultant|customer engineer|electrical engineer|mechanical engineer|civil engineer|hardware engineer|marketing engineer|rater|ai trainers?|trainers? network|annotat\w*|labell?ing|transcri\w*|moderator|evaluator|product lead|design lead)\b/i;
 
 /** Теги, которым верим, когда название ничего не говорит */
 const STRONG_TAGS = /(software|engineer|developer|devops|backend|frontend|full ?stack|programm|sre|data engineering|machine learning)/i;

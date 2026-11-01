@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "title": "Salaries by stack",
+    "description": "Median salary ranges by technology from jobs published on Stackwork."
+  },
+  "lead": "Median salary ranges from published jobs, in rubles, net. The more jobs mention a technology, the more accurate the figure.",
+  "empty": "Not enough jobs with a salary specified yet.",
+  "columns": {
+    "skill": "Technology",
+    "range": "Typical range",
+    "count": "Jobs"
+  }
+}

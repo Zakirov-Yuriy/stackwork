@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Manrope, JetBrains_Mono } from "next/font/google";
+import { getLocale } from "next-intl/server";
 import { Track } from "@/components/track";
 import "./globals.css";
 
@@ -20,19 +21,8 @@ const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").r
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: {
-    default: "Stackwork: IT-вакансии с указанной зарплатой",
-    template: "%s | Stackwork",
-  },
-  description:
-    "Вакансии для разработчиков, DevOps, данных, QA и аналитики. Зарплатная вилка и стек видны в каждой карточке.",
-  openGraph: {
-    type: "website",
-    siteName: "Stackwork",
-    locale: "ru_RU",
-    title: "Stackwork: IT-вакансии с указанной зарплатой",
-    description: "Вакансии для разработчиков, DevOps, данных, QA и аналитики. Зарплатная вилка и стек видны в каждой карточке.",
-  },
+  // Заголовки и описания по языкам задаёт src/app/[locale]/layout.tsx
+  title: { default: "Stackwork", template: "%s | Stackwork" },
   robots: { index: true, follow: true },
   // Подтверждение сайта в Google Search Console и Яндекс Вебмастере: коды в переменных окружения
   verification: {
@@ -41,9 +31,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Язык ставит прокси (src/proxy.ts) по префиксу /en, cookie или Accept-Language; в админке всегда ru
+  const locale = await getLocale();
   return (
-    <html lang="ru" className={`${manrope.variable} ${jetbrains.variable} h-full`}>
+    <html lang={locale} className={`${manrope.variable} ${jetbrains.variable} h-full`}>
       <body className="flex min-h-full flex-col">
         {children}
         <Suspense fallback={null}>

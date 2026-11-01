@@ -1,0 +1,29 @@
+{
+  "tabs": {
+    "label": "Dashboard sections",
+    "applications": "Applications"
+  },
+  "applications": {
+    "title": "My applications",
+    "count": "{count, plural, one {# application} other {# applications}}",
+    "verifyWhat": "you can’t apply for jobs",
+    "emailVerified": "Email verified.",
+    "passwordChanged": "Password changed.",
+    "forCandidates": "This section is for job seekers",
+    "loggedInAs": "You are logged in as {role, select, EMPLOYER {an employer} other {an administrator}}.",
+    "goToCabinet": "Go to dashboard",
+    "emptyTitle": "No applications yet",
+    "emptyText": "Find a job by tech stack and salary and apply: employers’ replies will show up here."
+  },
+  "saved": {
+    "title": "Saved",
+    "count": "{count, plural, one {# job} other {# jobs}}",
+    "emptyTitle": "Nothing saved yet",
+    "emptyText": "Click the bookmark on a job card and it will appear here.",
+    "unpublished": "This job is no longer published"
+  },
+  "verify": {
+    "text": "Verify your email {email}: until then {what}. The email with the link was sent when you signed up.",
+    "resend": "Resend the email"
+  }
+}

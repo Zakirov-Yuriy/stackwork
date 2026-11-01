@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "notFound": "Job not found"
+  },
+  "breadcrumbs": {
+    "label": "Breadcrumbs",
+    "vacancies": "Jobs"
+  },
+  "apply": "Apply",
+  "applyOnEmployerSite": "Apply on the employer’s website",
+  "published": "Posted {date} · {relative}",
+  "sections": {
+    "aboutTeam": "About the team",
+    "responsibilities": "What you will do",
+    "requirements": "What matters",
+    "niceToHave": "Nice to have",
+    "conditions": "What we offer",
+    "stack": "Tech stack"
+  },
+  "respond": {
+    "title": "Apply for this job",
+    "external": "Your application goes straight to the employer on their page: it opens in a new tab.",
+    "withGithub": "A link to your resume or GitHub. The employer’s reply will appear in My applications.",
+    "resumeOnly": "A link to your resume. The employer’s reply will appear in My applications.",
+    "loginAndApply": "Log in and apply",
+    "register": "Sign up",
+    "applied": "You applied on {date}. Status: {status}.",
+    "myApplications": "My applications",
+    "verifyWhat": "you can’t apply",
+    "employerAccount": "Only job seeker accounts can apply. You are logged in as an employer.",
+    "report": "Report this job"
+  },
+  "source": {
+    "employerSite": "This job was posted by {company} on <link>its own website</link>.",
+    "aggregator": "Source: <link>{source}</link>. The description is shown as in the source."
+  },
+  "company": {
+    "openCount": "{count, plural, one {# open job} other {# open jobs}}",
+    "about": "About the company",
+    "claim": "Is this your company? Claim the page"
+  },
+  "process": {
+    "title": "Hiring process",
+    "step1": "Reply to your application within 3 business days",
+    "step2": "Call with a team engineer, 45 minutes",
+    "step3": "Technical interview",
+    "step4": "Meeting with the manager, offer"
+  },
+  "similar": "Similar jobs",
+  "form": {
+    "resumeUrl": "Resume link",
+    "resumeHint": "Google Docs, hh.ru, a PDF in cloud storage, any public link",
+    "github": "GitHub",
+    "githubHint": "The employer accepts applications without a resume, based on your code",
+    "coverLetter": "A few words about yourself",
+    "coverLetterHint": "What you have worked on and why this job. Optional.",
+    "sending": "Sending…",
+    "submit": "Send application"
+  },
+  "errors": {
+    "candidatesOnly": "Only job seeker accounts can apply",
+    "verifyFirst": "Verify your email first: the link is in the email sent when you signed up. You can request it again in My applications",
+    "tooMany": "Too many applications in the last hour. Please try again later",
+    "captcha": "The “I’m not a robot” check failed. Reload the page and try again",
+    "unpublished": "This job is no longer published",
+    "githubFormat": "The GitHub link should look like https://github.com/username",
+    "resumeFormat": "The resume link must start with http:// or https://",
+    "empty": "Add at least one thing: a resume link, GitHub or a few words about yourself",
+    "duplicate": "You have already applied for this job"
+  },
+  "success": "Application sent. The employer’s reply will appear in My applications."
+}

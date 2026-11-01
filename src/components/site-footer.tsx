@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { BrandMark } from "@/components/brand-mark";
 
 const linkCls = "text-[color:var(--soft-muted)] hover:text-[color:var(--soft-text)]";
@@ -13,7 +14,8 @@ function Brand({ size = "md" }: { size?: "md" | "sm" }) {
   );
 }
 
-export function SiteFooter({ compact = false }: { compact?: boolean }) {
+export async function SiteFooter({ compact = false }: { compact?: boolean }) {
+  const t = await getTranslations("common.footer");
   if (compact) {
     return (
       <footer className="mt-auto">
@@ -23,12 +25,12 @@ export function SiteFooter({ compact = false }: { compact?: boolean }) {
         <div className="mx-auto flex max-w-[1180px] flex-wrap items-center gap-5 px-6 py-5 text-[13px]">
           <Brand size="sm" />
           <Link href="/privacy" className={linkCls}>
-            Политика обработки персональных данных
+            {t("privacy")}
           </Link>
           <Link href="/terms" className={linkCls}>
-            Пользовательское соглашение
+            {t("terms")}
           </Link>
-          <span className="ml-auto text-[color:var(--soft-muted)]">© 2026 stackwork · [РЕКВИЗИТЫ ОПЕРАТОРА ПЕРСОНАЛЬНЫХ ДАННЫХ]</span>
+          <span className="ml-auto text-[color:var(--soft-muted)]">{t("copyright")} · {t("operator")}</span>
         </div>
       </footer>
     );
@@ -43,52 +45,52 @@ export function SiteFooter({ compact = false }: { compact?: boolean }) {
         <div className="flex flex-[2_1_240px] flex-col gap-3">
           <Brand />
           <p className="m-0 max-w-[320px] leading-relaxed text-[color:var(--soft-muted)]">
-            Площадка IT-вакансий с указанной зарплатой. Для разработчиков и тех, кто их ищет.
+            {t("tagline")}
           </p>
         </div>
         <div className="flex flex-[1_1_160px] flex-col gap-2.5">
-          <strong className={headCls}>Соискателям</strong>
+          <strong className={headCls}>{t("seekers")}</strong>
           <Link href="/" className={linkCls}>
-            Вакансии
+            {t("vacancies")}
           </Link>
           <Link href="/me" className={linkCls}>
-            Мои отклики
+            {t("myResponses")}
           </Link>
           <Link href="/salaries" className={linkCls}>
-            Зарплаты по стеку
+            {t("salaries")}
           </Link>
           <Link href="/companies" className={linkCls}>
-            Компании
+            {t("companies")}
           </Link>
         </div>
         <div className="flex flex-[1_1_160px] flex-col gap-2.5">
-          <strong className={headCls}>Работодателям</strong>
+          <strong className={headCls}>{t("employers")}</strong>
           <Link href="/employer/vacancies/new" className={linkCls}>
-            Разместить вакансию
+            {t("postVacancy")}
           </Link>
           <Link href="/pricing" className={linkCls}>
-            Тарифы
+            {t("pricing")}
           </Link>
           <Link href="/employer" className={linkCls}>
-            Кабинет
+            {t("cabinet")}
           </Link>
         </div>
         <div className="flex flex-[1_1_200px] flex-col gap-2.5">
-          <strong className={headCls}>Документы</strong>
+          <strong className={headCls}>{t("documents")}</strong>
           <Link href="/privacy" className={linkCls}>
-            Политика обработки персональных данных
+            {t("privacy")}
           </Link>
           <Link href="/consent" className={linkCls}>
-            Согласие на обработку данных
+            {t("consent")}
           </Link>
           <Link href="/terms" className={linkCls}>
-            Пользовательское соглашение
+            {t("terms")}
           </Link>
         </div>
       </div>
       <div className="mx-auto flex max-w-[1180px] flex-wrap gap-4 px-6 pb-6 text-xs text-[color:var(--soft-muted)]">
-        <span>© 2026 stackwork</span>
-        <span>[РЕКВИЗИТЫ ОПЕРАТОРА ПЕРСОНАЛЬНЫХ ДАННЫХ]</span>
+        <span>{t("copyright")}</span>
+        <span>{t("operator")}</span>
       </div>
     </footer>
   );

@@ -1,7 +1,9 @@
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { Link, getPathname } from "@/i18n/navigation";
+import type { Locale } from "@/i18n/routing";
 import type { Skill } from "@/generated/prisma/client";
 import type { VacancyFilters } from "@/lib/vacancies";
-import { formatVacancyCount } from "@/lib/labels";
+import { makeLabels } from "@/lib/labels";
 import { Collapsible } from "./mobile-menu";
 
 type Facets = {
@@ -38,6 +40,13 @@ function Check({
 }
 
 export function FiltersSidebar({ filters, facets, skills, total }: { filters: VacancyFilters; facets: Facets; skills: Skill[]; total: number }) {
+  const t = useTranslations("home.filters");
+  const tc = useTranslations("common");
+  const locale = useLocale() as Locale;
+  const L = makeLabels(locale);
+  // Форма ведёт на главную текущего языка (/ или /en)
+  const homeAction = getPathname({ href: "/", locale });
+
   const fmt = new Set(filters.format ?? []);
   const grd = new Set(filters.grade ?? []);
   const emp = new Set(filters.employment ?? []);
@@ -46,64 +55,64 @@ export function FiltersSidebar({ filters, facets, skills, total }: { filters: Va
   const activeCount = fmt.size + grd.size + emp.size + sk.size + (filters.experience ? 1 : 0) + (filters.salaryFrom ? 1 : 0);
 
   return (
-    <aside aria-label="Фильтры" className="box-border flex w-full flex-col lg:max-w-[300px] lg:flex-[1_1_260px]">
-    <Collapsible title={activeCount ? `Фильтры (${activeCount})` : "Фильтры"}>
+    <aside aria-label={t("title")} className="box-border flex w-full flex-col lg:max-w-[300px] lg:flex-[1_1_260px]">
+    <Collapsible title={activeCount ? t("titleCount", { count: activeCount }) : t("title")}>
     <div className="neu-card box-border flex flex-col gap-6 p-6">
-      <form method="get" action="/" className="contents">
+      <form method="get" action={homeAction} className="contents">
         {filters.q ? <input type="hidden" name="q" value={filters.q} /> : null}
         {filters.city ? <input type="hidden" name="city" value={filters.city} /> : null}
         {filters.sort === "salary" ? <input type="hidden" name="sort" value="salary" /> : null}
 
         <div className="flex items-center justify-between gap-3">
-          <h2 className="m-0 text-base font-extrabold">Фильтры</h2>
+          <h2 className="m-0 text-base font-extrabold">{t("title")}</h2>
           <Link href="/" className="soft-link text-[13px]">
-            Сбросить
+            {tc("actions.reset")}
           </Link>
         </div>
 
         <fieldset className="m-0 flex flex-col gap-0.5 border-0 p-0">
-          <legend className={legendCls}>Формат работы</legend>
-          <Check name="format" value="REMOTE" label="Удалённо" checked={fmt.has("REMOTE")} count={facets.format.REMOTE} />
-          <Check name="format" value="HYBRID" label="Гибрид" checked={fmt.has("HYBRID")} count={facets.format.HYBRID} />
-          <Check name="format" value="OFFICE" label="Офис" checked={fmt.has("OFFICE")} count={facets.format.OFFICE} />
+          <legend className={legendCls}>{t("format")}</legend>
+          <Check name="format" value="REMOTE" label={L.WORK_FORMAT_LABEL.REMOTE} checked={fmt.has("REMOTE")} count={facets.format.REMOTE} />
+          <Check name="format" value="HYBRID" label={L.WORK_FORMAT_LABEL.HYBRID} checked={fmt.has("HYBRID")} count={facets.format.HYBRID} />
+          <Check name="format" value="OFFICE" label={L.WORK_FORMAT_LABEL.OFFICE} checked={fmt.has("OFFICE")} count={facets.format.OFFICE} />
         </fieldset>
 
         <fieldset className="m-0 flex flex-col gap-0.5 border-0 p-0">
-          <legend className={legendCls}>Грейд</legend>
-          <Check name="grade" value="JUNIOR" label="Junior" checked={grd.has("JUNIOR")} count={facets.grade.JUNIOR} />
-          <Check name="grade" value="MIDDLE" label="Middle" checked={grd.has("MIDDLE")} count={facets.grade.MIDDLE} />
-          <Check name="grade" value="SENIOR" label="Senior" checked={grd.has("SENIOR")} count={facets.grade.SENIOR} />
-          <Check name="grade" value="LEAD" label="Lead" checked={grd.has("LEAD")} count={facets.grade.LEAD} />
+          <legend className={legendCls}>{t("grade")}</legend>
+          <Check name="grade" value="JUNIOR" label={L.GRADE_LABEL.JUNIOR} checked={grd.has("JUNIOR")} count={facets.grade.JUNIOR} />
+          <Check name="grade" value="MIDDLE" label={L.GRADE_LABEL.MIDDLE} checked={grd.has("MIDDLE")} count={facets.grade.MIDDLE} />
+          <Check name="grade" value="SENIOR" label={L.GRADE_LABEL.SENIOR} checked={grd.has("SENIOR")} count={facets.grade.SENIOR} />
+          <Check name="grade" value="LEAD" label={L.GRADE_LABEL.LEAD} checked={grd.has("LEAD")} count={facets.grade.LEAD} />
         </fieldset>
 
         <div className="flex flex-col gap-2.5">
           <label htmlFor="salary" className={legendCls.replace("mb-2.5 ", "")}>
-            Зарплата от
+            {t("salaryFrom")}
           </label>
           <input
             id="salary"
             name="salary"
             type="text"
             inputMode="numeric"
-            placeholder="150 000"
-            defaultValue={filters.salaryFrom ? filters.salaryFrom.toLocaleString("ru-RU") : ""}
+            placeholder={t("salaryPlaceholder")}
+            defaultValue={filters.salaryFrom ? L.nf.format(filters.salaryFrom) : ""}
             className="neu-field font-mono text-sm"
             style={{ minHeight: 46 }}
           />
         </div>
 
         <fieldset className="m-0 flex flex-col gap-0.5 border-0 p-0">
-          <legend className={legendCls}>Опыт</legend>
-          <Check type="radio" name="exp" value="" label="Любой" checked={!filters.experience} />
-          <Check type="radio" name="exp" value="NONE" label="Без опыта" checked={filters.experience === "NONE"} />
-          <Check type="radio" name="exp" value="ONE_TO_THREE" label="1 до 3 лет" checked={filters.experience === "ONE_TO_THREE"} />
-          <Check type="radio" name="exp" value="THREE_TO_SIX" label="3 до 6 лет" checked={filters.experience === "THREE_TO_SIX"} />
-          <Check type="radio" name="exp" value="SIX_PLUS" label="Больше 6 лет" checked={filters.experience === "SIX_PLUS"} />
+          <legend className={legendCls}>{t("experience")}</legend>
+          <Check type="radio" name="exp" value="" label={t("anyExperience")} checked={!filters.experience} />
+          <Check type="radio" name="exp" value="NONE" label={L.EXPERIENCE_LABEL.NONE} checked={filters.experience === "NONE"} />
+          <Check type="radio" name="exp" value="ONE_TO_THREE" label={L.EXPERIENCE_LABEL.ONE_TO_THREE} checked={filters.experience === "ONE_TO_THREE"} />
+          <Check type="radio" name="exp" value="THREE_TO_SIX" label={L.EXPERIENCE_LABEL.THREE_TO_SIX} checked={filters.experience === "THREE_TO_SIX"} />
+          <Check type="radio" name="exp" value="SIX_PLUS" label={L.EXPERIENCE_LABEL.SIX_PLUS} checked={filters.experience === "SIX_PLUS"} />
         </fieldset>
 
         {skills.length ? (
           <fieldset className="m-0 flex flex-col gap-3 border-0 p-0">
-            <legend className={legendCls.replace("mb-2.5 ", "")}>Стек</legend>
+            <legend className={legendCls.replace("mb-2.5 ", "")}>{t("stack")}</legend>
             <div className="flex flex-wrap gap-2.5 py-1">
               {skills.map((s) => (
                 <label key={s.id} className="neu-pill font-mono">
@@ -116,14 +125,14 @@ export function FiltersSidebar({ filters, facets, skills, total }: { filters: Va
         ) : null}
 
         <fieldset className="m-0 flex flex-col gap-0.5 border-0 p-0">
-          <legend className={legendCls}>Занятость</legend>
-          <Check name="employment" value="FULL_TIME" label="Полная" checked={emp.has("FULL_TIME")} />
-          <Check name="employment" value="PART_TIME" label="Частичная" checked={emp.has("PART_TIME")} />
-          <Check name="employment" value="CONTRACT" label="Проект или контракт" checked={emp.has("CONTRACT")} />
+          <legend className={legendCls}>{t("employment")}</legend>
+          <Check name="employment" value="FULL_TIME" label={t("employmentFull")} checked={emp.has("FULL_TIME")} />
+          <Check name="employment" value="PART_TIME" label={t("employmentPart")} checked={emp.has("PART_TIME")} />
+          <Check name="employment" value="CONTRACT" label={t("employmentContract")} checked={emp.has("CONTRACT")} />
         </fieldset>
 
         <button type="submit" className="neu-primary" style={{ minHeight: 52, fontSize: 15 }}>
-          Показать {formatVacancyCount(total)}
+          {t("show", { count: L.formatVacancyCount(total) })}
         </button>
       </form>
     </div>

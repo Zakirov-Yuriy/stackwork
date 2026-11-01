@@ -1,0 +1,185 @@
+{
+  "nav": {
+    "badge": "for employers",
+    "label": "Dashboard menu",
+    "noCompany": "No company set",
+    "toSite": "Back to site",
+    "logout": "Log out",
+    "menu": {
+      "label": "Menu",
+      "open": "Open menu",
+      "close": "Close menu"
+    }
+  },
+  "status": {
+    "draft": "Draft",
+    "moderation": "In review",
+    "published": "Published",
+    "archived": "Archived",
+    "rejected": "Rejected"
+  },
+  "counts": {
+    "applications": "{count, plural, one {# application} other {# applications}}",
+    "views": "{count, plural, one {# view} other {# views}}",
+    "published": "{count, plural, one {# published} other {# published}}",
+    "newResponses": "{count, plural, one {# new application} other {# new applications}}",
+    "fresh": "{count, plural, one {# new} other {# new}}"
+  },
+  "dashboard": {
+    "title": "My jobs",
+    "verifyWhat": "your jobs will not be sent for review",
+    "sent": "The job has been sent for review. This usually takes up to one business day.",
+    "verified": "Email confirmed.",
+    "passwordChanged": "Password changed.",
+    "summary": "{published} · {newResponses}",
+    "emptyTitle": "No jobs yet",
+    "emptyText": "Create your first one: add the salary range, tech stack and responsibilities. After review it will appear in search, and applications will land here.",
+    "createVacancy": "Create a job",
+    "since": "since {date}",
+    "updated": "updated {date}",
+    "open": "Open",
+    "edit": "Edit",
+    "archive": "Archive"
+  },
+  "billing": {
+    "title": "Plan",
+    "current": "Current plan: free.",
+    "free": "Free",
+    "noLimits": "no limits on the number of jobs or applications",
+    "text": "While the platform is growing, posting is free. When paid options arrive, they will only affect job promotion; basic posting will stay free for existing companies."
+  },
+  "company": {
+    "title": "Company",
+    "introExisting": "This information is shown on job cards and on the company page.",
+    "introNew": "Fill in the company profile to start posting jobs.",
+    "saved": "Saved",
+    "form": {
+      "name": "Name",
+      "industry": "Industry",
+      "industryHint": "Fintech, e-commerce, SaaS…",
+      "city": "City",
+      "website": "Website",
+      "about": "About the company",
+      "aboutHint": "Two or three sentences: what you do and what the team is like",
+      "saving": "Saving…"
+    }
+  },
+  "responses": {
+    "title": "Applications",
+    "summary": "{total} across all jobs · {fresh}",
+    "emptyTitle": "No applications yet",
+    "emptyText": "They will show up as soon as a published job catches the interest of job seekers."
+  },
+  "vacancyForm": {
+    "newTitle": "New job",
+    "newIntro": "Fill in the card. After review the job will appear in search and get its own link.",
+    "editTitle": "Edit job",
+    "statusPublished": "The job is published. Changes apply as soon as you save.",
+    "statusModeration": "The job is in review. You can keep editing; the latest version will be reviewed.",
+    "statusRejected": "The job was rejected in review. Fix it and submit again.",
+    "statusRejectedWithComment": "The job was rejected in review: {comment}. Fix it and submit again.",
+    "statusDraft": "Draft. Visible only to you.",
+    "draftSaved": "Draft saved",
+    "sections": {
+      "basic": "Basics",
+      "format": "Format and location",
+      "salary": "Salary",
+      "stack": "Tech stack",
+      "description": "Description"
+    },
+    "fields": {
+      "title": "Job title",
+      "titleHint": "Role and key technology. No \"urgent\" or exclamation marks.",
+      "direction": "Area",
+      "experience": "Experience",
+      "grade": "Level",
+      "workFormat": "Work format",
+      "remoteOnly": "Remote only",
+      "city": "Office city",
+      "employment": "Employment",
+      "salaryNote": "Required: jobs without a salary range are not published on the platform.",
+      "salaryFrom": "From",
+      "salaryTo": "To",
+      "currency": "Currency",
+      "salaryType": "Type",
+      "salaryNet": "Net",
+      "salaryGross": "Gross (before tax)",
+      "skills": "Technologies, comma-separated",
+      "skillsHint": "For example: Go, PostgreSQL, Kafka, Kubernetes. At least three.",
+      "skillsPlaceholder": "Go, PostgreSQL, Kafka",
+      "aboutTeam": "About the team",
+      "responsibilities": "What you will do",
+      "responsibilitiesHint": "One item per line",
+      "requirements": "What matters",
+      "requirementsHint": "Only what the work cannot be done without. Put wishes under \"nice to have\"",
+      "niceToHave": "Nice to have",
+      "conditions": "Benefits",
+      "conditionsHint": "Contract type, health insurance, equipment, training",
+      "acceptsGithubLink": "Accept applications with a GitHub link instead of a resume",
+      "showCompanyName": "Show the company name on the card"
+    },
+    "directions": {
+      "backend": "Backend",
+      "frontend": "Frontend",
+      "fullstack": "Fullstack",
+      "mobile": "Mobile",
+      "devops": "DevOps / SRE",
+      "data": "Data / ML",
+      "qa": "QA",
+      "analytics": "Analytics",
+      "management": "Management",
+      "security": "Security"
+    },
+    "buttons": {
+      "sending": "Sending…",
+      "saveAndPublish": "Save and publish",
+      "submit": "Submit for review",
+      "saveDraft": "Save draft",
+      "toList": "Back to list"
+    },
+    "preview": {
+      "title": "How the card looks in search"
+    },
+    "checks": {
+      "title": "Pre-publish check",
+      "allOk": "All set, ready to submit.",
+      "draftHint": "A draft can be saved in any state; it goes to review only after all checks pass.",
+      "titleMin": "Job title of at least 8 characters",
+      "salaryOk": "Salary range provided",
+      "salaryMissing": "Salary range missing: we do not publish without it",
+      "stackOk": "Tech stack filled in, at least 3 technologies",
+      "stackCount": "Tech stack: {count} of 3 minimum",
+      "sectionsOk": "\"What you will do\" and \"what matters\" are filled in",
+      "sectionsEmpty": "\"What you will do\" and \"what matters\" are empty",
+      "discriminatory": "Looks like age or gender requirements: they are prohibited by employment law",
+      "noDiscrimination": "No age or gender requirements"
+    },
+    "tariff": {
+      "placeholder": "[PLAN TERMS: posting price, listing duration, number of applications]",
+      "change": "Change plan"
+    }
+  },
+  "applications": {
+    "metaTitle": "Job applications",
+    "breadcrumbs": "Breadcrumbs",
+    "noName": "No name",
+    "resume": "Resume",
+    "emptyPublished": "The job is live in search; applications will appear here.",
+    "emptyUnpublished": "The job is not published, so job seekers cannot see it.",
+    "actions": {
+      "viewed": "Viewed",
+      "interview": "Invite to interview",
+      "offer": "Offer",
+      "reject": "Reject"
+    }
+  },
+  "errors": {
+    "titleRequired": "Enter a job title",
+    "salaryRange": "The lower bound of the range is higher than the upper bound",
+    "verifyEmail": "Confirm your email to submit the job for review: use the link in the email, or request it again on the \"My jobs\" page",
+    "beforeModeration": "Before submitting for review: {list}",
+    "vacancyNotFound": "Job not found",
+    "companyNameRequired": "Enter the company name",
+    "websiteProtocol": "The website must start with http:// or https://"
+  }
+}
