@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import type { Prisma, VacancySource } from "@/generated/prisma/client";
 import { siteUrl } from "@/lib/mail";
 import { makeLabels } from "@/lib/labels";
-import { esc, isTelegramConfigured, sendMessage, sendPhoto, TelegramError, type InlineKeyboard } from "./api";
+import { deleteMessage, esc, isTelegramConfigured, sendMessage, sendPhoto, TelegramError, type InlineKeyboard } from "./api";
 import { getTelegramSettings, saveTelegramSettings, type TelegramSettings } from "./settings";
 
 /**
@@ -173,6 +173,31 @@ export async function postPendingVacancies(opts: { force?: boolean; max?: number
   }
   await saveTelegramSettings({ lastRun: { at: new Date().toISOString(), sent, error: error ?? null } });
   return { sent, candidates: pending, limitLeft: Math.max(0, limitLeft - sent), ...(error ? { error } : {}) };
+}
+
+/**
+ * Удаляет из канала все посты, отправленные ботом, и забывает о них: после этого вакансии
+ * снова считаются неопубликованными и уйдут в канал заново (уже с картинками, новыми кнопками и т. п.).
+ */
+export async function deleteAllPosts(): Promise<{ deleted: number; failed: number }> {
+  const posts = await db.telegramPost.findMany({ select: { id: true, chatId: true, messageId: true } });
+  let deleted = 0;
+  let failed = 0;
+  for (const p of posts) {
+    if (p.messageId) {
+      try {
+        await deleteMessage(p.chatId, p.messageId);
+        deleted++;
+      } catch (e) {
+        failed++;
+        const retry = e instanceof TelegramError ? e.retryAfter : undefined;
+        if (retry) await sleep((retry + 1) * 1000);
+      }
+      await sleep(150);
+    }
+  }
+  await db.telegramPost.deleteMany({});
+  return { deleted, failed };
 }
 
 export { TelegramError };

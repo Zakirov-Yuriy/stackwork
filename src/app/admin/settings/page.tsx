@@ -3,7 +3,8 @@ import { requireRole } from "@/lib/guards";
 import { getImportSettings } from "@/lib/import/settings";
 import { ADAPTERS } from "@/lib/import/sources";
 import { PageHeader, Card, btn } from "@/components/admin/ui";
-import { saveImportSettingsAction, saveTelegramSettingsAction, connectTelegramAction, postToTelegramNowAction } from "./actions";
+import { saveImportSettingsAction, saveTelegramSettingsAction, connectTelegramAction, postToTelegramNowAction, repostTelegramAction } from "./actions";
+import { ConfirmButton } from "./confirm-button";
 import { getTelegramSettings } from "@/lib/telegram/settings";
 import { getWebhookInfo, isTelegramConfigured } from "@/lib/telegram/api";
 import { postedToday } from "@/lib/telegram/post";
@@ -240,6 +241,13 @@ export default async function SettingsPage(props: PageProps<"/admin/settings">) 
               Отправить ожидающие вакансии сейчас
             </button>
           </form>
+          {tgTotal > 0 ? (
+            <form action={repostTelegramAction}>
+              <ConfirmButton className={btn("danger")} message={`Удалить из канала все ${tgTotal} постов бота и отправить вакансии заново с текущими настройками? Это займёт около минуты.`}>
+                Удалить посты и отправить заново
+              </ConfirmButton>
+            </form>
+          ) : null}
         </div>
       </div>
     </>

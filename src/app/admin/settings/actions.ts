@@ -9,7 +9,7 @@ import type { VacancySource } from "@/generated/prisma/client";
 import { siteUrl } from "@/lib/mail";
 import { getMe, isTelegramConfigured, setWebhook, tg } from "@/lib/telegram/api";
 import { getTelegramSettings, saveTelegramSettings } from "@/lib/telegram/settings";
-import { postPendingVacancies } from "@/lib/telegram/post";
+import { deleteAllPosts, postPendingVacancies } from "@/lib/telegram/post";
 
 function lines(v: FormDataEntryValue | null): string[] {
   return String(v ?? "")
@@ -88,6 +88,17 @@ export async function postToTelegramNowAction() {
   if (!user || user.role !== "ADMIN") redirect("/forbidden");
   const r = await postPendingVacancies({ force: true });
   const message = r.error && !r.sent ? `Не отправлено: ${r.error}` : `Отправлено ${r.sent} из ${r.candidates} ожидающих, лимит на сегодня остался ${r.limitLeft}${r.error ? `, последняя ошибка: ${r.error}` : ""}`;
+  revalidatePath("/admin/settings");
+  redirect(`/admin/settings?tg=${encodeURIComponent(message)}#telegram`);
+}
+
+/** Удалить все посты бота из канала и отправить вакансии заново (с картинками и текущими настройками) */
+export async function repostTelegramAction() {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "ADMIN") redirect("/forbidden");
+  const d = await deleteAllPosts();
+  const r = await postPendingVacancies({ force: true });
+  const message = `Удалено ${d.deleted} постов${d.failed ? ` (${d.failed} не удалось)` : ""}, отправлено заново ${r.sent}${r.error ? `, ошибка: ${r.error}` : ""}`;
   revalidatePath("/admin/settings");
   redirect(`/admin/settings?tg=${encodeURIComponent(message)}#telegram`);
 }

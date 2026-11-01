@@ -76,6 +76,10 @@ export async function sendPhoto(chatId: string | number, photo: string, caption:
   });
 }
 
+export async function deleteMessage(chatId: string | number, messageId: number): Promise<void> {
+  await tg("deleteMessage", { chat_id: chatId, message_id: messageId });
+}
+
 export type BotInfo = { id: number; username: string; first_name: string };
 
 export async function getMe(): Promise<BotInfo> {
