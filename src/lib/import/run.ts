@@ -19,6 +19,7 @@ import {
   stripHtml,
 } from "./classify";
 import type { RawJob } from "./types";
+import { notifyVacancyUrls } from "@/lib/seo/indexing";
 
 export type RunSummary = {
   runId: string;
@@ -48,6 +49,7 @@ export async function runSource(
   const log = (line: string) => notes.push(line);
   const skipped: Skipped = { notIt: 0, noSalary: 0, language: 0, notRemote: 0, bad: 0 };
   const counters = { fetched: 0, created: 0, updated: 0, archived: 0 };
+  const createdSlugs: string[] = [];
 
   try {
     const boards =
@@ -61,8 +63,16 @@ export async function runSource(
 
     for (const job of jobs) {
       const verdict = await upsertJob(job, s, now, skipped);
-      if (verdict === "created") counters.created++;
-      else if (verdict === "updated") counters.updated++;
+      if (verdict.result === "created") {
+        counters.created++;
+        if (verdict.slug) createdSlugs.push(verdict.slug);
+      } else if (verdict.result === "updated") counters.updated++;
+    }
+
+    // Новые страницы сразу отдаём поисковикам (IndexNow для Яндекса и Bing, Indexing API для Google)
+    if (createdSlugs.length && s.autoPublish) {
+      const note = await notifyVacancyUrls(createdSlugs);
+      if (note) notes.push(`поисковики: ${note}`);
     }
 
     // Пропавшие из источника вакансии уходят в архив, но только если выборка прошла успешно
@@ -106,12 +116,29 @@ export async function runSource(
   }
 }
 
-/** Импорт по списку источников подряд (или по всем включённым). */
-export async function runImport(opts: { sources?: VacancySource[]; trigger: ImportTrigger; userId?: string | null }): Promise<RunSummary[]> {
+/**
+ * Импорт по списку источников подряд (или по всем включённым).
+ * budgetMs: сколько времени есть на весь запуск (на Vercel функция живёт не дольше 300 с);
+ * источники, на которые времени не хватило, пропускаются с записью в журнал и пойдут в следующий запуск.
+ */
+export async function runImport(opts: { sources?: VacancySource[]; trigger: ImportTrigger; userId?: string | null; budgetMs?: number }): Promise<RunSummary[]> {
   const settings = await getImportSettings();
-  const list = (opts.sources?.length ? opts.sources : settings.enabledSources).filter(isImportSource);
+  const all = (opts.sources?.length ? opts.sources : settings.enabledSources).filter(isImportSource);
+  // Самые быстрые источники первыми, Remotive (с паузами между запросами) последним
+  const list = [...all].sort((a, b) => (a === "REMOTIVE" ? 1 : 0) - (b === "REMOTIVE" ? 1 : 0));
+  const budget = opts.budgetMs ?? 240_000;
+  const started = Date.now();
   const results: RunSummary[] = [];
   for (const source of list) {
+    const elapsed = Date.now() - started;
+    const estimate = source === "REMOTIVE" ? 110_000 : 30_000;
+    if (elapsed + estimate > budget) {
+      const run = await db.importRun.create({
+        data: { source, trigger: opts.trigger, triggeredBy: opts.userId ?? null, status: "ERROR", finishedAt: new Date(), error: "Пропущен: не хватило времени в этом запуске, пойдёт в следующий" },
+      });
+      results.push({ runId: run.id, source, status: "ERROR", fetched: 0, created: 0, updated: 0, skipped: 0, archived: 0, error: run.error ?? undefined });
+      continue;
+    }
     results.push(await runSource(source, opts.trigger, opts.userId ?? null, settings));
   }
   return results;
@@ -130,31 +157,33 @@ export async function hasRunningImport(): Promise<boolean> {
 
 // ───────────────────────────── Одна вакансия ─────────────────────────────
 
-async function upsertJob(job: RawJob, s: ImportSettings, now: Date, skipped: Skipped): Promise<"created" | "updated" | "skipped"> {
+type Verdict = { result: "created" | "updated" | "skipped"; slug?: string };
+
+async function upsertJob(job: RawJob, s: ImportSettings, now: Date, skipped: Skipped): Promise<Verdict> {
   const title = job.title?.trim().slice(0, 160);
   if (!title || !job.companyName?.trim() || !job.externalId || !job.externalUrl) {
     skipped.bad++;
-    return "skipped";
+    return { result: "skipped" };
   }
   if (s.remoteOnly && !job.remote) {
     skipped.notRemote++;
-    return "skipped";
+    return { result: "skipped" };
   }
   if (!isItJob(title, job.tags)) {
     skipped.notIt++;
-    return "skipped";
+    return { result: "skipped" };
   }
 
   const descriptionHtml = sanitizeDescription(job.descriptionHtml ?? "");
   const text = stripHtml(descriptionHtml);
   if (text.length < 80) {
     skipped.bad++;
-    return "skipped";
+    return { result: "skipped" };
   }
   const language = job.language?.slice(0, 2).toLowerCase() || detectLanguage(`${title} ${text}`);
   if (s.languages.length && !s.languages.includes(language)) {
     skipped.language++;
-    return "skipped";
+    return { result: "skipped" };
   }
 
   // Зарплата: числа от источника или разбор строки
@@ -181,7 +210,7 @@ async function upsertJob(job: RawJob, s: ImportSettings, now: Date, skipped: Ski
   if (salaryFrom && salaryTo && salaryFrom > salaryTo) [salaryFrom, salaryTo] = [salaryTo, salaryFrom];
   if (s.requireSalary && !salaryFrom && !salaryTo) {
     skipped.noSalary++;
-    return "skipped";
+    return { result: "skipped" };
   }
 
   const grade = detectGrade(title, job.seniorityHint);
@@ -234,7 +263,7 @@ async function upsertJob(job: RawJob, s: ImportSettings, now: Date, skipped: Ski
 
   if (existing) {
     // Скрытые администратором (REJECTED) не трогаем, остальные обновляем и возвращаем из архива
-    if (existing.status === "REJECTED") return "skipped";
+    if (existing.status === "REJECTED") return { result: "skipped" };
     await db.vacancy.update({
       where: { id: existing.id },
       data: {
@@ -243,7 +272,7 @@ async function upsertJob(job: RawJob, s: ImportSettings, now: Date, skipped: Ski
         skills: { deleteMany: {}, create: skillRows.map((r, i) => ({ skillId: r.id, order: i })) },
       },
     });
-    return "updated";
+    return { result: "updated", slug: existing.slug };
   }
 
   const base = slugify(`${title} ${company.name}`) || `job-${job.source.toLowerCase()}-${job.externalId}`;
@@ -262,7 +291,7 @@ async function upsertJob(job: RawJob, s: ImportSettings, now: Date, skipped: Ski
       skills: { create: skillRows.map((r, i) => ({ skillId: r.id, order: i })) },
     },
   });
-  return "created";
+  return { result: "created", slug };
 }
 
 async function upsertCompany(job: RawJob) {

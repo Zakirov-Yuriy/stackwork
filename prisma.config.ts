@@ -8,6 +8,8 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url: env("DATABASE_URL"),
+    // Миграции идут по прямому подключению (DIRECT_URL), если оно задано: у Neon и Supabase
+    // пулер (pgbouncer) не подходит для миграций. Приложение всегда ходит через DATABASE_URL.
+    url: process.env.DIRECT_URL ? env("DIRECT_URL") : env("DATABASE_URL"),
   },
 });

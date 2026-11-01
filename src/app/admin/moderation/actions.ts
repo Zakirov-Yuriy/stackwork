@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { sendMailSafe, siteUrl, moderationResultMail } from "@/lib/mail";
+import { notifyVacancyUrls } from "@/lib/seo/indexing";
 
 export async function moderateAction(formData: FormData) {
   const user = await getCurrentUser();
@@ -27,6 +28,8 @@ export async function moderateAction(formData: FormData) {
         ? { status: "PUBLISHED", publishedAt: v.publishedAt ?? new Date(), moderationComment: null }
         : { status: "REJECTED", moderationComment: comment },
   });
+
+  if (decision === "approve") await notifyVacancyUrls([v.slug]);
 
   const recipients = new Set<string>(v.company.members.map((m) => m.email));
   if (v.author?.email) recipients.add(v.author.email);

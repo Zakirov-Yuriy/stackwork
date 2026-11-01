@@ -90,3 +90,28 @@ export function DonutChart({ labels, series, total }: { labels: string[]; series
   );
   return <div ref={ref} className="min-h-[230px]" />;
 }
+
+/** Столбики по дням с накоплением: новые вакансии по источникам */
+export function StackedBarChart({ days, series, height = 300 }: { days: string[]; series: Array<{ name: string; data: number[] }>; height?: number }) {
+  const labels = days.map((d) => new Date(`${d}T00:00:00`).toLocaleDateString("ru-RU", { day: "2-digit", month: "short" }));
+  const ref = useApex(
+    () => {
+      const c = palette();
+      return {
+        chart: { type: "bar", height, stacked: true, foreColor: c.text, toolbar: { show: false }, background: "transparent", fontFamily: "inherit" },
+        theme: { mode: c.mode },
+        grid: { borderColor: c.grid },
+        series,
+        colors: ["#696cff", "#03c3ec", "#71dd37", "#ffab00", "#ff3e1d", "#8592a3", "#4f46e5", "#0ea5e9", "#f97316"],
+        plotOptions: { bar: { columnWidth: days.length > 20 ? "70%" : "45%", borderRadius: 3 } },
+        dataLabels: { enabled: false },
+        xaxis: { categories: labels, labels: { rotate: -45, rotateAlways: days.length > 14, hideOverlappingLabels: true } },
+        yaxis: { min: 0, forceNiceScale: true, labels: { formatter: (v: number) => String(Math.round(v)) } },
+        legend: { horizontalAlign: "left" },
+        tooltip: { shared: true, intersect: false },
+      };
+    },
+    [days.join(","), series.map((s) => `${s.name}:${s.data.join(",")}`).join("|")],
+  );
+  return <div ref={ref} style={{ minHeight: height }} />;
+}

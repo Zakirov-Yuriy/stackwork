@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { requireRole } from "@/lib/guards";
 import { dashboardCounts } from "@/lib/stats/queries";
 import { ADAPTER_BY_SOURCE } from "@/lib/import/sources";
+import { dailyNewVacancies } from "@/lib/stats/daily";
 import { PageHeader, StatCard, Card, Table, StatusBadgeAdmin, Empty, LinkButton, nf, dateTime } from "@/components/admin/ui";
 import { formatSalary } from "@/lib/labels";
 
@@ -12,7 +13,7 @@ export const metadata: Metadata = { title: "Главная" };
 
 export default async function AdminHome() {
   await requireRole("ADMIN", "/admin");
-  const [c, recent, claims] = await Promise.all([
+  const [c, recent, claims, daily] = await Promise.all([
     dashboardCounts(),
     db.vacancy.findMany({
       orderBy: { updatedAt: "desc" },
@@ -20,7 +21,11 @@ export default async function AdminHome() {
       select: { id: true, slug: true, title: true, status: true, source: true, salaryFrom: true, salaryTo: true, currency: true, updatedAt: true, company: { select: { name: true } } },
     }),
     db.companyClaim.findMany({ where: { status: "PENDING" }, take: 5, orderBy: { createdAt: "asc" }, include: { company: { select: { name: true } }, user: { select: { email: true } } } }),
+    dailyNewVacancies(7),
   ]);
+  const newToday = daily[daily.length - 1]?.total ?? 0;
+  const newYesterday = daily[daily.length - 2]?.total ?? 0;
+  const newWeek = daily.reduce((a, d) => a + d.total, 0);
 
   const lastRun = c.lastRun;
   const lastLabel = lastRun ? `${ADAPTER_BY_SOURCE[lastRun.source as keyof typeof ADAPTER_BY_SOURCE]?.label ?? lastRun.source}, ${dateTime(lastRun.startedAt)}` : "ещё не запускался";
@@ -32,7 +37,7 @@ export default async function AdminHome() {
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         <StatCard icon={<Briefcase size={20} />} label="Опубликовано" value={nf.format(c.published)} hint={`${nf.format(c.imported)} из импорта, ${nf.format(c.manual)} от работодателей`} href="/admin/vacancies?status=PUBLISHED" />
         <StatCard icon={<ShieldCheck size={20} />} label="На модерации" value={nf.format(c.moderation)} hint="ждут решения" href="/admin/moderation" tone={c.moderation ? "warning" : "secondary"} />
-        <StatCard icon={<Download size={20} />} label="Последний импорт" value={lastRun ? <StatusBadgeAdmin status={lastRun.status} /> : "–"} hint={lastLabel} href="/admin/import" tone="info" />
+        <StatCard icon={<Download size={20} />} label="Новых вакансий сегодня" value={nf.format(newToday)} hint={`вчера ${nf.format(newYesterday)}, за 7 дней ${nf.format(newWeek)} · импорт: ${lastRun ? lastLabel : "ещё не запускался"}`} href="/admin/import" tone="info" />
         <StatCard icon={<Building2 size={20} />} label="Компании" value={nf.format(c.companies)} hint={c.pendingClaims ? `${c.pendingClaims} заявок на страницу` : "заявок нет"} href="/admin/companies" tone={c.pendingClaims ? "warning" : "success"} />
         <StatCard icon={<Users size={20} />} label="Пользователи" value={nf.format(c.candidates + c.employers)} hint={`${c.candidates} соискателей, ${c.employers} работодателей`} href="/admin/users" tone="secondary" />
         <StatCard icon={<Eye size={20} />} label="Новые отклики" value={nf.format(c.newApplications)} hint="ещё не просмотрены работодателем" href="/admin/stats" tone="success" />

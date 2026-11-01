@@ -7,6 +7,9 @@ import { ADAPTERS, ADAPTER_BY_SOURCE } from "@/lib/import/sources";
 import { getImportSettings } from "@/lib/import/settings";
 import { countRunningImports } from "@/lib/import/run";
 import { PageHeader, Card, Table, StatusBadgeAdmin, Badge, Empty, btn, nf, dateTime } from "@/components/admin/ui";
+import { StackedBarChart } from "@/components/admin/charts";
+import { dailyNewVacancies } from "@/lib/stats/daily";
+import type { VacancySource } from "@/generated/prisma/client";
 import { runImportAction } from "./actions";
 import { AutoRefresh } from "./auto-refresh";
 
@@ -18,13 +21,24 @@ export default async function ImportPage(props: PageProps<"/admin/import">) {
   const sp = await props.searchParams;
   const settings = await getImportSettings();
 
-  const [runs, lastBySource, published, running] = await Promise.all([
+  const [runs, lastBySource, published, running, daily] = await Promise.all([
     db.importRun.findMany({ orderBy: { startedAt: "desc" }, take: 40, include: { user: { select: { email: true } } } }),
     db.importRun.findMany({ orderBy: { startedAt: "desc" }, distinct: ["source"], select: { source: true, status: true, startedAt: true, created: true, updated: true, archived: true } }),
     db.vacancy.groupBy({ by: ["source"], where: { status: "PUBLISHED" }, _count: { _all: true } }),
     countRunningImports(),
+    dailyNewVacancies(30),
   ]);
   const last = new Map(lastBySource.map((r) => [r.source, r]));
+  // Источники, у которых за 30 дней были новые вакансии: колонки таблицы и серии графика
+  const activeSources = ADAPTERS.map((a) => a.source).filter((src) => daily.some((d) => (d.bySource[src] ?? 0) > 0));
+  const chartSeries = [
+    ...activeSources.map((src) => ({ name: ADAPTER_BY_SOURCE[src as keyof typeof ADAPTER_BY_SOURCE].label, data: daily.map((d) => d.bySource[src] ?? 0) })),
+    ...(daily.some((d) => d.manual > 0) ? [{ name: "Работодатели", data: daily.map((d) => d.manual) }] : []),
+  ];
+  const month = daily.reduce((a, d) => a + d.total, 0);
+  const week = daily.slice(-7).reduce((a, d) => a + d.total, 0);
+  const todayRow = daily[daily.length - 1];
+  const dayLabel = (d: string) => new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "2-digit", weekday: "short", timeZone: "UTC" }).format(new Date(`${d}T00:00:00Z`));
   const count = new Map(published.map((p) => [p.source, p._count._all]));
   const isRunning = running > 0;
 
@@ -88,6 +102,64 @@ export default async function ImportPage(props: PageProps<"/admin/import">) {
           );
         })}
       </div>
+
+      <Card
+        className="mb-6"
+        title="Новые вакансии по дням"
+        actions={
+          <span className="text-sm">
+            Сегодня <b className="text-[var(--a-heading)]">{nf.format(todayRow?.total ?? 0)}</b> · за 7 дней <b className="text-[var(--a-heading)]">{nf.format(week)}</b> · за 30 дней{" "}
+            <b className="text-[var(--a-heading)]">{nf.format(month)}</b>
+          </span>
+        }
+      >
+        {month === 0 ? (
+          <p className="m-0 text-sm text-[var(--a-muted)]">За 30 дней новых вакансий не было. Запустите импорт, и здесь появится график.</p>
+        ) : (
+          <StackedBarChart days={daily.map((d) => d.day)} series={chartSeries} />
+        )}
+      </Card>
+
+      <Card className="mb-6" title="Таблица по дням" padded={false}>
+        <Table>
+          <thead>
+            <tr>
+              <th>День</th>
+              <th className="text-right">Новых всего</th>
+              {activeSources.map((src) => (
+                <th key={src} className="text-right">
+                  {ADAPTER_BY_SOURCE[src as keyof typeof ADAPTER_BY_SOURCE].label}
+                </th>
+              ))}
+              <th className="text-right">Работодатели</th>
+              <th className="text-right">Обновлено</th>
+              <th className="text-right">В архив</th>
+              <th className="text-right">Запусков</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...daily].reverse().filter((d, i) => i < 14 || d.total > 0 || d.runs > 0).map((d) => (
+              <tr key={d.day}>
+                <td className="whitespace-nowrap">{dayLabel(d.day)}</td>
+                <td className="text-right font-semibold text-[var(--a-heading)]">{nf.format(d.total)}</td>
+                {activeSources.map((src: VacancySource) => (
+                  <td key={src} className="text-right">
+                    {d.bySource[src] ? nf.format(d.bySource[src] ?? 0) : "–"}
+                  </td>
+                ))}
+                <td className="text-right">{d.manual ? nf.format(d.manual) : "–"}</td>
+                <td className="text-right">{d.updated ? nf.format(d.updated) : "–"}</td>
+                <td className="text-right">{d.archived ? nf.format(d.archived) : "–"}</td>
+                <td className="text-right">
+                  {d.runs ? nf.format(d.runs) : "–"}
+                  {d.errors ? <span className="ml-1 text-[var(--a-danger)]">({d.errors} с ошибкой)</span> : null}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+        <p className="m-0 px-6 py-3 text-xs text-[var(--a-muted)]">«Новых всего»: вакансии, впервые появившиеся на сайте в этот день (импорт по дате импорта, работодатели по дате публикации). Дни по московскому времени. Показаны последние 14 дней и дни с активностью.</p>
+      </Card>
 
       <Card title="Журнал запусков" padded={false} actions={<Link href="/admin/settings" className="a-link text-sm">Настройки импорта</Link>}>
         {runs.length === 0 ? (

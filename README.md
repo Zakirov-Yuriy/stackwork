@@ -66,6 +66,7 @@ pnpm dev
 | `pnpm db:studio`   | Prisma Studio: просмотр и правка данных в браузере       |
 | `pnpm db:generate` | перегенерировать Prisma Client после правки схемы        |
 | `pnpm db:deploy`   | применить готовые миграции без вопросов (продакшен и первый запуск) |
+| `pnpm admin:create` | создать администратора: `pnpm admin:create email "пароль" "Имя"` (для продакшена, без демо-данных) |
 | `pnpm jobs:import` | импорт вакансий из терминала: `pnpm jobs:import JOBICY REMOTEOK` (без аргументов: все включённые источники) |
 
 ## Структура
@@ -228,11 +229,19 @@ Soft UI (неоморфизм): светло-серый фон `#E8EBF0`, эле
 
 ### Вариант 1: Vercel + Neon (бесплатно)
 
-1. Postgres: создайте проект на [neon.tech](https://neon.tech) (или Prisma Postgres из маркетплейса Vercel), скопируйте строку подключения.
-2. Vercel: «Add New Project» → репозиторий GitHub `stackwork`. Framework: Next.js, команды по умолчанию.
-3. Переменные окружения проекта: `DATABASE_URL`, `SESSION_SECRET`, `CRON_SECRET` (любые длинные случайные строки), `NEXT_PUBLIC_SITE_URL` (адрес сайта), `CONTACT_EMAIL`, при необходимости SMTP и Turnstile.
-4. Миграции: в настройках проекта Build Command замените на `pnpm prisma migrate deploy && pnpm build` (или запустите `pnpm db:deploy` локально с продакшен `DATABASE_URL`). Первого администратора создайте через `pnpm db:seed` с продакшен `DATABASE_URL` или смените роль в базе.
-5. Cron из `vercel.json` подхватится сам: на Hobby запуск раз в сутки, точность ±59 минут.
+1. Postgres: создайте проект на [neon.tech](https://neon.tech), скопируйте две строки подключения: pooled (с `-pooler` в хосте) в `DATABASE_URL` и direct в `DIRECT_URL`.
+2. Vercel: «Add New Project» → репозиторий GitHub `stackwork`. Framework: Next.js. Build Command уже задана в `vercel.json`: сначала миграции, потом сборка.
+3. Переменные окружения проекта: `DATABASE_URL`, `DIRECT_URL`, `SESSION_SECRET`, `CRON_SECRET` (любые длинные случайные строки), `NEXT_PUBLIC_SITE_URL` (адрес сайта, например `https://stackwork.vercel.app`), `CONTACT_EMAIL`, `INDEXNOW_KEY`; при необходимости SMTP, Turnstile, `GOOGLE_SITE_VERIFICATION`, `YANDEX_VERIFICATION`, `GOOGLE_INDEXING_SA_JSON`.
+4. Администратор без демо-данных: локально `DATABASE_URL="<строка Neon>" pnpm admin:create admin@example.com "пароль" "Имя"` (в PowerShell: `$env:DATABASE_URL="<строка>"; pnpm admin:create …`).
+5. Cron из `vercel.json` подхватится сам: на Hobby запуск раз в сутки, точность ±59 минут. Первый импорт запустите кнопкой в админке.
+
+### Индексация
+
+- `robots.txt` и `sitemap.xml` генерируются сами (`src/app/robots.ts`, `sitemap.ts`), админка и кабинеты закрыты от индексации.
+- На страницах вакансий разметка schema.org `JobPosting` (блок «Вакансии» в Google), на главной `WebSite` с поиском.
+- Подтверждение сайта: добавьте коды из Google Search Console и Яндекс Вебмастера в `GOOGLE_SITE_VERIFICATION` и `YANDEX_VERIFICATION`, после деплоя подтвердите и отправьте `sitemap.xml` в обоих.
+- IndexNow: задайте `INDEXNOW_KEY`, новые вакансии после импорта и модерации сразу уходят в Яндекс и Bing.
+- Google Indexing API (ускоряет попадание вакансий в Google, официально разрешён именно для JobPosting): сервисный аккаунт в Google Cloud с включённым Web Search Indexing API, его почта добавлена владельцем сайта в Search Console, JSON ключа в `GOOGLE_INDEXING_SA_JSON`. Квота 200 адресов в сутки.
 
 Из России панель Vercel и CLI часто требуют VPN, а у части провайдеров IP Vercel недоступны. Подключите свой домен через Cloudflare (DNS с проксированием), тогда посетители ходят через сеть Cloudflare.
 

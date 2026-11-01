@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
+import { notifyVacancyUrls } from "@/lib/seo/indexing";
 
 const ALLOWED = new Set(["PUBLISHED", "ARCHIVED", "REJECTED", "MODERATION"]);
 
@@ -27,6 +28,7 @@ export async function setVacancyStatusAction(formData: FormData) {
     where: { id },
     data: status === "PUBLISHED" ? { status: "PUBLISHED", publishedAt: v.publishedAt ?? new Date() } : { status: status as "ARCHIVED" | "REJECTED" | "MODERATION" },
   });
+  if (status === "PUBLISHED") await notifyVacancyUrls([v.slug]);
   revalidatePath("/");
   revalidatePath(`/vacancies/${v.slug}`);
   revalidatePath("/admin/vacancies");

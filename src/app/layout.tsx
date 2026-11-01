@@ -34,6 +34,11 @@ export const metadata: Metadata = {
     description: "Вакансии для разработчиков, DevOps, данных, QA и аналитики. Зарплатная вилка и стек видны в каждой карточке.",
   },
   robots: { index: true, follow: true },
+  // Подтверждение сайта в Google Search Console и Яндекс Вебмастере: коды в переменных окружения
+  verification: {
+    ...(process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : {}),
+    ...(process.env.YANDEX_VERIFICATION ? { yandex: process.env.YANDEX_VERIFICATION } : {}),
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

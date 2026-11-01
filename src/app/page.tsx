@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
+import { JsonLd } from "@/components/json-ld";
+import { websiteJsonLd } from "@/lib/seo/job-posting";
 import { SiteFooter } from "@/components/site-footer";
 import { VacancyCard } from "@/components/vacancy-card";
 import { FiltersSidebar } from "@/components/filters-sidebar";
@@ -55,6 +57,7 @@ export default async function HomePage(props: PageProps<"/">) {
   return (
     <>
       <SiteHeader />
+      <JsonLd data={websiteJsonLd()} />
 
       <section>
         <div className="mx-auto flex max-w-[1180px] flex-col gap-7 px-6 pb-10 pt-10">

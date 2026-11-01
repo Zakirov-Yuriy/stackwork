@@ -16,6 +16,8 @@ import { turnstileSiteKey } from "@/lib/turnstile";
 import { VerifyBanner } from "@/components/verify-banner";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { ExternalApply, SourceLine } from "./external";
+import { JsonLd } from "@/components/json-ld";
+import { jobPostingJsonLd } from "@/lib/seo/job-posting";
 import {
   APPLICATION_STATUS_LABEL,
   GRADE_LABEL,
@@ -124,6 +126,7 @@ export default async function VacancyPage(props: PageProps<"/vacancies/[slug]">)
   return (
     <>
       <SiteHeader />
+      <JsonLd data={jobPostingJsonLd(v)} />
 
       <main className="mx-auto box-border flex w-full max-w-[1180px] flex-col gap-6 px-6 pb-14 pt-4">
         <nav aria-label="Хлебные крошки" className={`flex flex-wrap items-center gap-2 text-[13px] ${muted}`}>
