@@ -20,6 +20,7 @@ import {
 } from "./classify";
 import type { RawJob } from "./types";
 import { notifyVacancyUrls } from "@/lib/seo/indexing";
+import { postPendingVacancies } from "@/lib/telegram/post";
 
 export type RunSummary = {
   runId: string;
@@ -139,6 +140,14 @@ export async function runImport(opts: { sources?: VacancySource[]; trigger: Impo
       continue;
     }
     results.push(await runSource(source, opts.trigger, opts.userId ?? null, settings));
+  }
+  // Новые вакансии в Telegram-канал (если включено в настройках). Ошибки постинга импорт не ломают.
+  if (results.some((r) => r.created > 0)) {
+    try {
+      await postPendingVacancies({ deadline: started + budget + 45_000 });
+    } catch (e) {
+      console.error("[telegram] постинг после импорта:", e instanceof Error ? e.message : e);
+    }
   }
   return results;
 }

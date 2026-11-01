@@ -3,7 +3,12 @@ import { requireRole } from "@/lib/guards";
 import { getImportSettings } from "@/lib/import/settings";
 import { ADAPTERS } from "@/lib/import/sources";
 import { PageHeader, Card, btn } from "@/components/admin/ui";
-import { saveImportSettingsAction } from "./actions";
+import { saveImportSettingsAction, saveTelegramSettingsAction, connectTelegramAction, postToTelegramNowAction } from "./actions";
+import { getTelegramSettings } from "@/lib/telegram/settings";
+import { getWebhookInfo, isTelegramConfigured } from "@/lib/telegram/api";
+import { postedToday } from "@/lib/telegram/post";
+import { db } from "@/lib/db";
+import { dateTime } from "@/components/admin/ui";
 
 export const metadata: Metadata = { title: "Настройки" };
 
@@ -14,6 +19,15 @@ export default async function SettingsPage(props: PageProps<"/admin/settings">) 
   await requireRole("ADMIN", "/admin/settings");
   const sp = await props.searchParams;
   const s = await getImportSettings();
+  const tgs = await getTelegramSettings();
+  const configured = isTelegramConfigured();
+  const [tgTotal, tgToday, tgSums, webhook] = await Promise.all([
+    db.telegramPost.count(),
+    postedToday(),
+    db.telegramPost.aggregate({ _sum: { clicks: true, unlocked: true } }),
+    configured ? getWebhookInfo().catch(() => null) : Promise.resolve(null),
+  ]);
+  const tgMessage = typeof sp.tg === "string" ? sp.tg : null;
 
   return (
     <>
@@ -105,6 +119,105 @@ export default async function SettingsPage(props: PageProps<"/admin/settings">) 
           </button>
         </div>
       </form>
+
+      <div id="telegram" className="mt-8">
+        {tgMessage ? <div className={`mb-4 rounded-md px-4 py-3 text-sm ${/^Не /.test(tgMessage) ? "bg-[var(--a-danger-soft)] text-[#ff3e1d]" : "bg-[var(--a-info-soft)] text-[#03a9d1]"}`}>{tgMessage}</div> : null}
+        <form action={saveTelegramSettingsAction} className="grid gap-6 xl:grid-cols-2">
+          <Card title="Telegram-канал">
+            <div className="flex flex-col gap-4">
+              <label className={check}>
+                <input type="checkbox" name="enabled" defaultChecked={tgs.enabled} className="mt-1 h-4 w-4 accent-[var(--a-primary)]" />
+                <span>
+                  <span className="font-semibold text-[var(--a-heading)]">Постить вакансии в канал</span>
+                  <span className="block text-xs text-[var(--a-muted)]">После каждого импорта и после одобрения вакансии работодателя. Кнопка под постом ведёт в бота, ссылку получают только подписчики.</span>
+                </span>
+              </label>
+              <label className={label}>
+                Канал
+                <input name="channel" defaultValue={tgs.channel} placeholder="@stackworkjobs" className="a-input" />
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className={label}>
+                  Постов в сутки, не больше
+                  <input name="dailyLimit" type="number" min={1} max={100} defaultValue={tgs.dailyLimit} className="a-input" />
+                </label>
+              </div>
+              <label className={check}>
+                <input type="checkbox" name="salaryFirst" defaultChecked={tgs.salaryFirst} className="mt-1 h-4 w-4 accent-[var(--a-primary)]" />
+                <span>
+                  <span className="font-semibold text-[var(--a-heading)]">Сначала вакансии с зарплатой</span>
+                  <span className="block text-xs text-[var(--a-muted)]">Когда новых вакансий больше лимита, в канал идут те, где указана зарплата, затем самые свежие.</span>
+                </span>
+              </label>
+              <label className={check}>
+                <input type="checkbox" name="postEmployer" defaultChecked={tgs.postEmployer} className="mt-1 h-4 w-4 accent-[var(--a-primary)]" />
+                <span>
+                  <span className="font-semibold text-[var(--a-heading)]">Вакансии работодателей</span>
+                  <span className="block text-xs text-[var(--a-muted)]">Постить сразу после одобрения на модерации.</span>
+                </span>
+              </label>
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wide">Источники для канала</span>
+                {ADAPTERS.map((a) => (
+                  <label key={a.source} className={check}>
+                    <input type="checkbox" name="tgSources" value={a.source} defaultChecked={tgs.sources.includes(a.source)} className="mt-1 h-4 w-4 accent-[var(--a-primary)]" />
+                    <span className="font-semibold text-[var(--a-heading)]">{a.label}</span>
+                    {a.source === "REMOTIVE" ? <span className="text-xs text-[var(--a-muted)]">условия Remotive запрещают перепубликацию</span> : null}
+                  </label>
+                ))}
+              </div>
+              <div>
+                <button type="submit" className={btn("primary")}>
+                  Сохранить Telegram
+                </button>
+              </div>
+            </div>
+          </Card>
+
+          <Card title="Бот и статистика">
+            <div className="flex flex-col gap-3 text-sm">
+              <div className="grid grid-cols-[160px_1fr] gap-y-2">
+                <span className="text-[var(--a-muted)]">Токен бота</span>
+                <span>{configured ? "задан (TELEGRAM_BOT_TOKEN)" : <span className="text-[#ff3e1d]">не задан: добавьте TELEGRAM_BOT_TOKEN в переменные окружения</span>}</span>
+                <span className="text-[var(--a-muted)]">Бот</span>
+                <span>{tgs.botUsername ? `@${tgs.botUsername}` : "не подключён"}</span>
+                <span className="text-[var(--a-muted)]">Подключён</span>
+                <span>{tgs.connectedAt ? dateTime(new Date(tgs.connectedAt)) : "нет"}</span>
+                <span className="text-[var(--a-muted)]">Вебхук</span>
+                <span>
+                  {webhook ? (webhook.url ? "установлен" : "не установлен") : "нет данных"}
+                  {webhook?.last_error_message ? <span className="block text-xs text-[#ff3e1d]">последняя ошибка: {webhook.last_error_message}</span> : null}
+                </span>
+                <span className="text-[var(--a-muted)]">Постов всего</span>
+                <span>{tgTotal}</span>
+                <span className="text-[var(--a-muted)]">Сегодня</span>
+                <span>{tgToday} из {tgs.dailyLimit}</span>
+                <span className="text-[var(--a-muted)]">Нажатий «Открыть»</span>
+                <span>{tgSums._sum.clicks ?? 0}</span>
+                <span className="text-[var(--a-muted)]">Выдано ссылок</span>
+                <span>{tgSums._sum.unlocked ?? 0} (подписчикам)</span>
+                <span className="text-[var(--a-muted)]">Последний постинг</span>
+                <span>{tgs.lastRun ? `${dateTime(new Date(tgs.lastRun.at))}, отправлено ${tgs.lastRun.sent}${tgs.lastRun.error ? `, ошибка: ${tgs.lastRun.error}` : ""}` : "ещё не было"}</span>
+              </div>
+              <p className="m-0 text-xs text-[var(--a-muted)]">
+                Подключение: создайте бота в @BotFather, положите токен в TELEGRAM_BOT_TOKEN, добавьте бота в администраторы канала с правом публикации, затем нажмите «Подключить бота». Кнопка ставит вебхук и проверяет права.
+              </p>
+            </div>
+          </Card>
+        </form>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <form action={connectTelegramAction}>
+            <button type="submit" className={btn("outline")} disabled={!configured}>
+              Подключить бота
+            </button>
+          </form>
+          <form action={postToTelegramNowAction}>
+            <button type="submit" className={btn("outline")} disabled={!configured || !tgs.botUsername}>
+              Отправить ожидающие вакансии сейчас
+            </button>
+          </form>
+        </div>
+      </div>
     </>
   );
 }

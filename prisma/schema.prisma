@@ -119,6 +119,22 @@ model Company {
   logo      CompanyLogo?
 }
 
+/// Пост вакансии в Telegram-канале: один на вакансию, плюс счётчики переходов через бота
+model TelegramPost {
+  id         String   @id @default(cuid())
+  vacancyId  String   @unique
+  vacancy    Vacancy  @relation(fields: [vacancyId], references: [id], onDelete: Cascade)
+  chatId     String
+  messageId  Int?
+  postedAt   DateTime @default(now())
+  /// Нажатий «Открыть вакансию» (переход в бота)
+  clicks     Int      @default(0)
+  /// Сколько раз бот выдал ссылку подписчику
+  unlocked   Int      @default(0)
+
+  @@index([postedAt])
+}
+
 /// Логотип, загруженный работодателем: квадрат 256×256 в WebP, отдаётся по /api/company-logo/<companyId>
 model CompanyLogo {
   companyId String   @id
@@ -274,6 +290,7 @@ model Vacancy {
   savedBy      SavedVacancy[]
   reports      Report[]
   pageViews    PageView[]
+  telegramPost TelegramPost?
 
   @@unique([source, externalId])
   @@index([status, publishedAt])

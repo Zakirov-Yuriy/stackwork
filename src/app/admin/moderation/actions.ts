@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { sendMailSafe, siteUrl, moderationResultMail } from "@/lib/mail";
 import { notifyVacancyUrls } from "@/lib/seo/indexing";
+import { postVacancy, VACANCY_FOR_POST } from "@/lib/telegram/post";
+import { getTelegramSettings } from "@/lib/telegram/settings";
 
 export async function moderateAction(formData: FormData) {
   const user = await getCurrentUser();
@@ -29,7 +31,15 @@ export async function moderateAction(formData: FormData) {
         : { status: "REJECTED", moderationComment: comment },
   });
 
-  if (decision === "approve") await notifyVacancyUrls([v.slug]);
+  if (decision === "approve") {
+    await notifyVacancyUrls([v.slug]);
+    // В Telegram-канал, если постинг включён и вакансии работодателей разрешены
+    const tg = await getTelegramSettings();
+    if (tg.enabled && tg.postEmployer) {
+      const full = await db.vacancy.findUnique({ where: { id: v.id }, select: VACANCY_FOR_POST });
+      if (full) await postVacancy(full, tg);
+    }
+  }
 
   const recipients = new Set<string>(v.company.members.map((m) => m.email));
   if (v.author?.email) recipients.add(v.author.email);
