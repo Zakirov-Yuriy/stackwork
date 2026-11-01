@@ -46,6 +46,16 @@ body {
     6px 6px 14px var(--soft-dark),
     -6px -6px 14px var(--soft-light);
 }
+/* Знак бренда (буква S, как в фавиконке): светлый квадрат с мягкими тенями в любом окружении */
+.brand-mark {
+  background: #e8ebf0;
+  --brand-mark-dark: #c6cbd4;
+  --brand-mark-light: #ffffff;
+}
+html[data-admin-theme="dark"] .brand-mark {
+  --brand-mark-dark: rgba(0, 0, 0, 0.45);
+  --brand-mark-light: rgba(255, 255, 255, 0.06);
+}
 .neu-inset {
   background: var(--soft-bg);
   box-shadow:

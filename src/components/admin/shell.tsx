@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 import { usePathname } from "next/navigation";
 import { useState, useSyncExternalStore, type ReactNode } from "react";
 import {
@@ -99,9 +100,7 @@ export function AdminShell({
       >
         <div className="flex h-16 items-center gap-2.5 px-6">
           <Link href="/admin" className="flex items-center gap-2.5 text-lg font-extrabold text-[var(--a-heading)]">
-            <span aria-hidden="true" className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--a-primary)] font-mono text-xs font-semibold text-white">
-              &lt;/&gt;
-            </span>
+            <BrandMark size={32} />
             <span>stackwork</span>
           </Link>
           <button type="button" aria-label="Скрыть меню" onClick={() => setOpen(false)} className="ml-auto rounded p-1 hover:bg-[var(--a-hover)] xl:hidden">

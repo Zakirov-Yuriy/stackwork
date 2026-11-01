@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 
 const linkCls = "text-[color:var(--soft-muted)] hover:text-[color:var(--soft-text)]";
 const headCls = "text-[13px] font-extrabold uppercase tracking-[0.06em] text-[color:var(--soft-text)]";
@@ -6,9 +7,7 @@ const headCls = "text-[13px] font-extrabold uppercase tracking-[0.06em] text-[co
 function Brand({ size = "md" }: { size?: "md" | "sm" }) {
   return (
     <div className={`flex items-center gap-2 font-extrabold text-[color:var(--soft-text)] ${size === "sm" ? "text-base" : "text-lg"}`}>
-      <span aria-hidden="true" className="neu-raised inline-flex h-8 w-8 items-center justify-center rounded-lg font-mono text-xs font-semibold text-[color:var(--soft-blue)]">
-        &lt;/&gt;
-      </span>
+      <BrandMark size={32} />
       <span>stackwork</span>
     </div>
   );
