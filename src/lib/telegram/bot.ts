@@ -1,8 +1,8 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { siteUrl } from "@/lib/mail";
-import { answerCallback, esc, isChannelMember, sendMessage, type InlineKeyboard } from "./api";
-import { formatVacancyPost, VACANCY_FOR_POST } from "./post";
+import { answerCallback, esc, isChannelMember, sendMessage, sendPhoto, TelegramError, type InlineKeyboard } from "./api";
+import { formatVacancyPost, postImageUrl, VACANCY_FOR_POST } from "./post";
 import { getTelegramSettings, type TelegramSettings } from "./settings";
 
 /**
@@ -55,16 +55,27 @@ function channelName(s: TelegramSettings): string {
   return s.channel.startsWith("@") ? s.channel : "Stackwork";
 }
 
-async function sendVacancy(chatId: number, vacancyId: string, l: keyof typeof T): Promise<void> {
+async function sendVacancy(chatId: number, vacancyId: string, l: keyof typeof T, s: TelegramSettings): Promise<void> {
   const v = await db.vacancy.findFirst({ where: { id: vacancyId, status: "PUBLISHED" }, select: VACANCY_FOR_POST });
   if (!v) {
     await sendMessage(chatId, T[l].notFound);
     return;
   }
   const page = siteUrl(`/vacancies/${v.slug}?from=telegram`);
-  const apply = v.source === "MANUAL" ? `${page}#respond` : v.applyUrl || page;
+  // Отклик через /apply: переход считается в статистике, работодательские вакансии ведут на форму на сайте
+  const apply = siteUrl(`/apply/${v.slug}?from=telegram`);
   const keyboard: InlineKeyboard = [[{ text: T[l].page, url: page }], [{ text: T[l].apply, url: apply }]];
-  await sendMessage(chatId, `${formatVacancyPost(v)}\n\n${esc(T[l].unlocked)}`, keyboard);
+  const text = `${formatVacancyPost(v)}\n\n${esc(T[l].unlocked)}`;
+  if (s.withImage && /^https:\/\//.test(siteUrl("/"))) {
+    try {
+      await sendPhoto(chatId, postImageUrl(v), text, keyboard);
+    } catch (e) {
+      if (!(e instanceof TelegramError) || e.code === 429) throw e;
+      await sendMessage(chatId, text, keyboard);
+    }
+  } else {
+    await sendMessage(chatId, text, keyboard);
+  }
   await db.telegramPost.updateMany({ where: { vacancyId }, data: { unlocked: { increment: 1 } } });
 }
 
@@ -83,7 +94,7 @@ async function handleStart(msg: Message, payload: string, s: TelegramSettings): 
   }
   const vacancyId = m[1];
   await db.telegramPost.updateMany({ where: { vacancyId }, data: { clicks: { increment: 1 } } });
-  if (await isChannelMember(s.channel, msg.from.id)) await sendVacancy(chatId, vacancyId, l);
+  if (await isChannelMember(s.channel, msg.from.id)) await sendVacancy(chatId, vacancyId, l, s);
   else await sendGate(chatId, vacancyId, l, s);
 }
 
@@ -97,7 +108,7 @@ async function handleCallback(cb: CallbackQuery, s: TelegramSettings): Promise<v
   }
   if (await isChannelMember(s.channel, cb.from.id)) {
     await answerCallback(cb.id);
-    await sendVacancy(chatId, m[1], l);
+    await sendVacancy(chatId, m[1], l, s);
   } else {
     await answerCallback(cb.id, T[l].stillNot, true);
   }

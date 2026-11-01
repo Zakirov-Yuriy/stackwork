@@ -65,6 +65,17 @@ export async function sendMessage(chatId: string | number, text: string, keyboar
   });
 }
 
+/** Пост с картинкой: подпись до 1024 символов, те же кнопки */
+export async function sendPhoto(chatId: string | number, photo: string, caption: string, keyboard?: InlineKeyboard): Promise<SentMessage> {
+  return tg<SentMessage>("sendPhoto", {
+    chat_id: chatId,
+    photo,
+    caption: caption.slice(0, 1024),
+    parse_mode: "HTML",
+    ...(keyboard ? { reply_markup: { inline_keyboard: keyboard } } : {}),
+  });
+}
+
 export type BotInfo = { id: number; username: string; first_name: string };
 
 export async function getMe(): Promise<BotInfo> {

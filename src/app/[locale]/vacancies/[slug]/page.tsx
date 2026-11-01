@@ -40,7 +40,14 @@ export async function generateMetadata(props: PageProps<"/[locale]/vacancies/[sl
     title: `${v.title}, ${v.company.name}`,
     description,
     alternates: { canonical: localizedPath(path, locale), ...languageAlternates(path) },
-    openGraph: { type: "article", title: `${v.title} · ${v.company.name}`, description, url: localizedPath(path, locale) },
+    openGraph: {
+      type: "article",
+      title: `${v.title} · ${v.company.name}`,
+      description,
+      url: localizedPath(path, locale),
+      images: [{ url: `/api/og/vacancy/${v.slug}`, width: 1200, height: 630, alt: v.title }],
+    },
+    twitter: { card: "summary_large_image" },
   };
 }
 

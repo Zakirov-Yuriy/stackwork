@@ -150,6 +150,30 @@ export default async function SettingsPage(props: PageProps<"/admin/settings">) 
                 </span>
               </label>
               <label className={check}>
+                <input type="checkbox" name="withImage" defaultChecked={tgs.withImage} className="mt-1 h-4 w-4 accent-[var(--a-primary)]" />
+                <span>
+                  <span className="font-semibold text-[var(--a-heading)]">Пост с картинкой</span>
+                  <span className="block text-xs text-[var(--a-muted)]">Карточка вакансии в стиле сайта: логотип, должность, зарплата, стек. Та же картинка показывается при шаринге ссылки.</span>
+                </span>
+              </label>
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wide">Кнопки под постом</span>
+                <label className={check}>
+                  <input type="radio" name="linkMode" value="direct" defaultChecked={tgs.linkMode === "direct"} className="mt-1 h-4 w-4 accent-[var(--a-primary)]" />
+                  <span>
+                    <span className="font-semibold text-[var(--a-heading)]">Прямые ссылки</span>
+                    <span className="block text-xs text-[var(--a-muted)]">«Открыть на сайте» и «Откликнуться» сразу под постом. Доступны всем, кто видит пост.</span>
+                  </span>
+                </label>
+                <label className={check}>
+                  <input type="radio" name="linkMode" value="bot" defaultChecked={tgs.linkMode === "bot"} className="mt-1 h-4 w-4 accent-[var(--a-primary)]" />
+                  <span>
+                    <span className="font-semibold text-[var(--a-heading)]">Через бота, только подписчикам</span>
+                    <span className="block text-xs text-[var(--a-muted)]">Кнопка «Открыть вакансию» ведёт в бота, он проверяет подписку на канал и выдаёт ссылки. Нужен подключённый бот.</span>
+                  </span>
+                </label>
+              </div>
+              <label className={check}>
                 <input type="checkbox" name="postEmployer" defaultChecked={tgs.postEmployer} className="mt-1 h-4 w-4 accent-[var(--a-primary)]" />
                 <span>
                   <span className="font-semibold text-[var(--a-heading)]">Вакансии работодателей</span>

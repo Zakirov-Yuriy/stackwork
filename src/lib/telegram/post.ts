@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import type { Prisma, VacancySource } from "@/generated/prisma/client";
 import { siteUrl } from "@/lib/mail";
 import { makeLabels } from "@/lib/labels";
-import { esc, isTelegramConfigured, sendMessage, TelegramError, type InlineKeyboard } from "./api";
+import { esc, isTelegramConfigured, sendMessage, sendPhoto, TelegramError, type InlineKeyboard } from "./api";
 import { getTelegramSettings, saveTelegramSettings, type TelegramSettings } from "./settings";
 
 /**
@@ -65,10 +65,25 @@ export function formatVacancyPost(v: VacancyForPost): string {
   return lines.filter(Boolean).join("\n");
 }
 
-/** Кнопка под постом: в бота, если он подключён, иначе сразу на сайт */
+/**
+ * Кнопки под постом. Режим direct: «Открыть на сайте» и «Откликнуться» (через /apply, чтобы считать переходы).
+ * Режим bot: одна кнопка в бота, ссылку получают только подписчики канала.
+ */
 export function postKeyboard(v: Pick<VacancyForPost, "id" | "slug">, settings: TelegramSettings): InlineKeyboard {
-  const url = settings.botUsername ? `https://t.me/${settings.botUsername}?start=v_${v.id}` : siteUrl(`/vacancies/${v.slug}?from=telegram`);
-  return [[{ text: "Открыть вакансию", url }]];
+  if (settings.linkMode === "bot" && settings.botUsername) {
+    return [[{ text: "Открыть вакансию", url: `https://t.me/${settings.botUsername}?start=v_${v.id}` }]];
+  }
+  return [
+    [
+      { text: "Открыть на сайте", url: siteUrl(`/vacancies/${v.slug}?from=telegram`) },
+      { text: "Откликнуться", url: siteUrl(`/apply/${v.slug}?from=telegram`) },
+    ],
+  ];
+}
+
+/** Картинка поста: карточка вакансии, которую Telegram забирает с нашего сайта */
+export function postImageUrl(v: Pick<VacancyForPost, "slug">): string {
+  return siteUrl(`/api/og/vacancy/${v.slug}.png`);
 }
 
 /** Начало текущих суток по Москве (лимит постов считается по московскому дню) */
@@ -90,7 +105,20 @@ export async function postVacancy(v: VacancyForPost, settings?: TelegramSettings
   const already = await db.telegramPost.findUnique({ where: { vacancyId: v.id }, select: { id: true } });
   if (already) return null;
   try {
-    const sent = await sendMessage(s.channel, formatVacancyPost(v), postKeyboard(v, s));
+    const text = formatVacancyPost(v);
+    const keyboard = postKeyboard(v, s);
+    let sent;
+    if (s.withImage && /^https:\/\//.test(siteUrl("/"))) {
+      // Telegram сам скачивает картинку по адресу; если не смог, шлём текстом
+      try {
+        sent = await sendPhoto(s.channel, postImageUrl(v), text, keyboard);
+      } catch (e) {
+        if (!(e instanceof TelegramError) || e.code === 429) throw e;
+        sent = await sendMessage(s.channel, text, keyboard);
+      }
+    } else {
+      sent = await sendMessage(s.channel, text, keyboard);
+    }
     await db.telegramPost.create({ data: { vacancyId: v.id, chatId: s.channel, messageId: sent.message_id } });
     return null;
   } catch (e) {

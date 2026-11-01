@@ -19,6 +19,10 @@ export type TelegramSettings = {
   sources: VacancySource[];
   /** Постить вакансии работодателей после модерации */
   postEmployer: boolean;
+  /** Кнопки под постом: прямые ссылки на сайт и отклик или через бота (только подписчикам) */
+  linkMode: "direct" | "bot";
+  /** Прикладывать к посту карточку-картинку */
+  withImage: boolean;
   /** Когда бот был подключён (вебхук поставлен) */
   connectedAt: string | null;
   /** Итог последнего постинга */
@@ -33,6 +37,8 @@ export const DEFAULT_TELEGRAM_SETTINGS: TelegramSettings = {
   salaryFirst: true,
   sources: ["JOBICY", "REMOTEOK", "HIMALAYAS", "ARBEITNOW", "GREENHOUSE", "LEVER", "ASHBY"],
   postEmployer: true,
+  linkMode: "bot",
+  withImage: true,
   connectedAt: null,
   lastRun: null,
 };
@@ -59,6 +65,8 @@ export function normalizeTelegramSettings(raw: unknown): TelegramSettings {
     salaryFirst: typeof r.salaryFirst === "boolean" ? r.salaryFirst : d.salaryFirst,
     sources: Array.isArray(r.sources) ? (r.sources.filter((s): s is string => typeof s === "string").filter(isImportSource) as VacancySource[]) : d.sources,
     postEmployer: typeof r.postEmployer === "boolean" ? r.postEmployer : d.postEmployer,
+    linkMode: r.linkMode === "bot" ? "bot" : r.linkMode === "direct" ? "direct" : d.linkMode,
+    withImage: typeof r.withImage === "boolean" ? r.withImage : d.withImage,
     connectedAt: typeof r.connectedAt === "string" ? r.connectedAt : null,
     lastRun: lastRun(r.lastRun),
   };

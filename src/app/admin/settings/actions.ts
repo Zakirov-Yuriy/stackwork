@@ -51,6 +51,8 @@ export async function saveTelegramSettingsAction(formData: FormData) {
     dailyLimit: Number(formData.get("dailyLimit")),
     salaryFirst: formData.get("salaryFirst") === "on",
     postEmployer: formData.get("postEmployer") === "on",
+    linkMode: formData.get("linkMode") === "bot" ? "bot" : "direct",
+    withImage: formData.get("withImage") === "on",
     sources: formData.getAll("tgSources").map(String).filter(isImportSource) as VacancySource[],
   });
   revalidatePath("/admin/settings");
