@@ -18,7 +18,7 @@ import { INTL_LOCALE, type Locale } from "@/i18n/routing";
 
 /** Доски ATS: вакансия опубликована самим работодателем на его сайте */
 export function isEmployerBoard(source: VacancySource): boolean {
-  return source === "GREENHOUSE" || source === "LEVER" || source === "ASHBY";
+  return source === "GREENHOUSE" || source === "LEVER" || source === "ASHBY" || source === "SMARTRECRUITERS";
 }
 
 /** Название языка вакансии на нём самом */
@@ -93,6 +93,9 @@ const DICT: Record<Locale, Dict> = {
       GREENHOUSE: "сайт работодателя",
       LEVER: "сайт работодателя",
       ASHBY: "сайт работодателя",
+      SMARTRECRUITERS: "сайт работодателя",
+      TRUDVSEM: "Работа России",
+      HACKERNEWS: "Hacker News",
     },
     APPLICATION_STATUS_LABEL: { NEW: "новый", VIEWED: "просмотрен", INTERVIEW: "приглашение на интервью", OFFER: "оффер", REJECTED: "отказ" },
     WORK_FORMAT_LABEL: { REMOTE: "Удалённо", HYBRID: "Гибрид", OFFICE: "Офис", REMOTE_OR_OFFICE: "Удалённо или офис" },
@@ -132,6 +135,9 @@ const DICT: Record<Locale, Dict> = {
       GREENHOUSE: "employer's website",
       LEVER: "employer's website",
       ASHBY: "employer's website",
+      SMARTRECRUITERS: "employer's website",
+      TRUDVSEM: "Работа России",
+      HACKERNEWS: "Hacker News",
     },
     APPLICATION_STATUS_LABEL: { NEW: "new", VIEWED: "viewed", INTERVIEW: "interview invitation", OFFER: "offer", REJECTED: "rejected" },
     WORK_FORMAT_LABEL: { REMOTE: "Remote", HYBRID: "Hybrid", OFFICE: "On-site", REMOTE_OR_OFFICE: "Remote or on-site" },

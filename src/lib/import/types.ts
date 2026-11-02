@@ -47,6 +47,10 @@ export type SourceFetchOptions = {
   boards?: string[];
   /** Короткие заметки о ходе выборки для журнала */
   log: (line: string) => void;
+  /** Момент (Date.now()), после которого выборку надо прекратить: лимит времени функции */
+  deadline?: number;
+  /** Настройка «только удалённые»: адаптер может не скачивать описания офисных вакансий */
+  remoteOnly?: boolean;
 };
 
 export type SourceAdapter = {
@@ -58,6 +62,10 @@ export type SourceAdapter = {
   staleDays: number;
   /** true для досок ATS: вакансии с сайта работодателя, нужен список компаний */
   needsBoards?: boolean;
+  /** Локальный рынок (Россия, СНГ): не применяем фильтры «только удалённые» и «языки описания» */
+  localMarket?: boolean;
+  /** Не отсеивать по возрасту публикации: работодатель сам держит вакансию открытой */
+  ignoreAge?: boolean;
   /** Текст условия источника, показываем в админке */
   terms: string;
   fetch: (opts: SourceFetchOptions) => Promise<RawJob[]>;

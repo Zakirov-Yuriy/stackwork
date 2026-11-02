@@ -1,5 +1,6 @@
 import type { RawJob, SourceAdapter } from "../types";
-import { fetchJson, HttpError } from "../http";
+import { fetchJson, HttpError, mapLimit } from "../http";
+import { isItJob } from "../classify";
 
 /**
  * Ashby Job Board API: https://developers.ashbyhq.com/reference/job-postings
@@ -37,25 +38,30 @@ export const ashby: SourceAdapter = {
   homepage: "https://www.ashbyhq.com",
   staleDays: 3,
   needsBoards: true,
+  ignoreAge: true,
   terms: "Открытая доска вакансий работодателя. Отклик ведёт на страницу работодателя.",
-  async fetch({ limit, maxAgeDays, boards = [], log }) {
+  async fetch({ limit, boards = [], log, deadline, remoteOnly }) {
     const out: RawJob[] = [];
-    const minDate = Date.now() - maxAgeDays * 86_400_000;
-    for (const board of boards) {
-      let data: AshbyResponse;
+    const results = await mapLimit(boards, 6, async (board) => {
+      if (deadline && Date.now() > deadline) return null;
       try {
-        data = await fetchJson<AshbyResponse>(`https://api.ashbyhq.com/posting-api/job-board/${encodeURIComponent(board)}?includeCompensation=true`);
+        return { board, data: await fetchJson<AshbyResponse>(`https://api.ashbyhq.com/posting-api/job-board/${encodeURIComponent(board)}?includeCompensation=true`) };
       } catch (e) {
         log(`${board}: ${e instanceof HttpError ? `HTTP ${e.status}` : "ошибка"}`);
-        continue;
+        return null;
       }
+    });
+    for (const r of results) {
+      if (!r) continue;
+      const { board, data } = r;
       let taken = 0;
       for (const j of data.jobs) {
         if (j.isListed === false) continue;
         const publishedAt = j.publishedAt ? new Date(j.publishedAt) : new Date();
-        if (publishedAt.getTime() < minDate) continue;
         if (out.length >= limit) break;
         const remote = Boolean(j.isRemote) || /remote/i.test(j.workplaceType ?? "");
+        if (remoteOnly && !remote) continue;
+        if (!isItJob(j.title, [j.department ?? "", j.team ?? ""])) continue;
         const comp = j.compensation?.summaryComponents?.find((c) => /salary/i.test(c.compensationType ?? ""));
         const interval = (comp?.interval ?? "").toUpperCase();
         out.push({

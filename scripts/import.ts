@@ -10,7 +10,8 @@ import type { VacancySource } from "../src/generated/prisma/client";
 async function main() {
   const sources = process.argv.slice(2).map((s) => s.toUpperCase()) as VacancySource[];
   const started = Date.now();
-  const results = await runImport({ sources, trigger: "ADMIN" });
+  // Из консоли времени не ограничиваем: это способ разово заполнить базу целиком
+  const results = await runImport({ sources, trigger: "ADMIN", budgetMs: Infinity });
   for (const r of results) {
     const line = `${r.source.padEnd(11)} ${r.status.padEnd(5)} получено ${r.fetched}, новых ${r.created}, обновлено ${r.updated}, пропущено ${r.skipped}, в архив ${r.archived}`;
     console.log(r.error ? `${line}\n  ошибка: ${r.error}` : line);

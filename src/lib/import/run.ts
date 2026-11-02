@@ -18,7 +18,7 @@ import {
   parseSalaryText,
   stripHtml,
 } from "./classify";
-import type { RawJob } from "./types";
+import type { RawJob, SourceAdapter } from "./types";
 import { notifyVacancyUrls } from "@/lib/seo/indexing";
 import { postPendingVacancies } from "@/lib/telegram/post";
 
@@ -42,6 +42,7 @@ export async function runSource(
   trigger: ImportTrigger,
   userId: string | null,
   settings?: ImportSettings,
+  deadline?: number,
 ): Promise<RunSummary> {
   const adapter = ADAPTER_BY_SOURCE[source];
   const s = settings ?? (await getImportSettings());
@@ -51,24 +52,38 @@ export async function runSource(
   const skipped: Skipped = { notIt: 0, noSalary: 0, language: 0, notRemote: 0, bad: 0 };
   const counters = { fetched: 0, created: 0, updated: 0, archived: 0 };
   const createdSlugs: string[] = [];
+  const cache: RunCache = { companies: new Map(), skills: new Map() };
 
   try {
-    const boards =
-      source === "GREENHOUSE" ? s.greenhouseBoards : source === "LEVER" ? s.leverCompanies : source === "ASHBY" ? s.ashbyBoards : undefined;
-    if (adapter.needsBoards && !boards?.length) {
+    const allBoards = boardsFor(source, s);
+    if (adapter.needsBoards && !allBoards?.length) {
       throw new Error("Не указаны доски компаний для этого источника (Админка → Настройки → Импорт)");
     }
-    const jobs = await adapter.fetch({ limit: s.maxPerSource, maxAgeDays: s.maxAgeDays, boards, log });
+    // Доски обходим по кругу: с каждым запуском начинаем с другого места, чтобы при нехватке времени
+    // за несколько дней были обработаны все
+    const boards = allBoards ? rotate(allBoards, Math.floor(Date.now() / 86_400_000)) : undefined;
+    // На выборку даём не больше половины времени, остальное на запись в базу
+    const fetchDeadline = deadline ? Date.now() + Math.max(20_000, (deadline - Date.now()) / 2) : undefined;
+    const jobs = await adapter.fetch({ limit: s.maxPerSource, maxAgeDays: s.maxAgeDays, boards, log, deadline: fetchDeadline, remoteOnly: s.remoteOnly && !adapter.localMarket });
     counters.fetched = jobs.length;
     const now = new Date();
 
-    for (const job of jobs) {
-      const verdict = await upsertJob(job, s, now, skipped);
+    // Если времени на всё не хватит, с каждым запуском начинаем с другого места списка
+    const ordered = deadline ? rotate(jobs, Math.floor(Date.now() / 86_400_000) * 97) : jobs;
+    let processed = 0;
+    for (const job of ordered) {
+      if (deadline && Date.now() > deadline) {
+        log(`лимит времени: обработано ${processed} из ${jobs.length}, остальное в следующий запуск`);
+        break;
+      }
+      const verdict = await upsertJob(job, s, now, skipped, adapter, cache);
+      processed++;
       if (verdict.result === "created") {
         counters.created++;
         if (verdict.slug) createdSlugs.push(verdict.slug);
       } else if (verdict.result === "updated") counters.updated++;
     }
+    const complete = processed === jobs.length;
 
     // Новые страницы сразу отдаём поисковикам (IndexNow для Яндекса и Bing, Indexing API для Google)
     if (createdSlugs.length && s.autoPublish) {
@@ -76,14 +91,17 @@ export async function runSource(
       if (note) notes.push(`поисковики: ${note}`);
     }
 
-    // Пропавшие из источника вакансии уходят в архив, но только если выборка прошла успешно
-    if (jobs.length > 0) {
+    // Пропавшие из источника вакансии уходят в архив, но только если выборка прошла успешно и до конца.
+    // Для досок работодателей архивируем только по доскам, которые реально были опрошены в этом запуске.
+    if (jobs.length > 0 && complete) {
       const threshold = new Date(now.getTime() - adapter.staleDays * 86_400_000);
+      const fetchedBoards = boards ? [...new Set(jobs.map((j) => j.externalId.split(":")[0]))] : null;
       const stale = await db.vacancy.updateMany({
         where: {
           source,
           status: "PUBLISHED",
           OR: [{ lastSeenAt: { lt: threshold } }, { expiresAt: { lt: now } }],
+          ...(fetchedBoards ? { AND: [{ OR: fetchedBoards.map((b) => ({ externalId: { startsWith: `${b}:` } })) }] } : {}),
         },
         data: { status: "ARCHIVED" },
       });
@@ -129,17 +147,19 @@ export async function runImport(opts: { sources?: VacancySource[]; trigger: Impo
   const budget = opts.budgetMs ?? 240_000;
   const started = Date.now();
   const results: RunSummary[] = [];
-  for (const source of list) {
-    const elapsed = Date.now() - started;
-    const estimate = 30_000;
-    if (elapsed + estimate > budget) {
+  for (let i = 0; i < list.length; i++) {
+    const source = list[i];
+    const left = budget - (Date.now() - started);
+    if (left < 15_000) {
       const run = await db.importRun.create({
         data: { source, trigger: opts.trigger, triggeredBy: opts.userId ?? null, status: "ERROR", finishedAt: new Date(), error: "Пропущен: не хватило времени в этом запуске, пойдёт в следующий" },
       });
       results.push({ runId: run.id, source, status: "ERROR", fetched: 0, created: 0, updated: 0, skipped: 0, archived: 0, error: run.error ?? undefined });
       continue;
     }
-    results.push(await runSource(source, opts.trigger, opts.userId ?? null, settings));
+    // Остаток времени делим поровну между оставшимися источниками (без бюджета, из скрипта: без ограничения)
+    const share = opts.budgetMs === Infinity ? undefined : Date.now() + Math.floor(left / (list.length - i));
+    results.push(await runSource(source, opts.trigger, opts.userId ?? null, settings, share));
   }
   // Новые вакансии в Telegram-канал (если включено в настройках). Ошибки постинга импорт не ломают.
   if (results.some((r) => r.created > 0)) {
@@ -167,13 +187,42 @@ export async function hasRunningImport(): Promise<boolean> {
 
 type Verdict = { result: "created" | "updated" | "skipped"; slug?: string };
 
-async function upsertJob(job: RawJob, s: ImportSettings, now: Date, skipped: Skipped): Promise<Verdict> {
+type RunCache = { companies: Map<string, { id: string; name: string }>; skills: Map<string, string> };
+
+function boardsFor(source: VacancySource, s: ImportSettings): string[] | undefined {
+  switch (source) {
+    case "GREENHOUSE":
+      return s.greenhouseBoards;
+    case "LEVER":
+      return s.leverCompanies;
+    case "ASHBY":
+      return s.ashbyBoards;
+    case "SMARTRECRUITERS":
+      return s.smartrecruitersCompanies;
+    default:
+      return undefined;
+  }
+}
+
+function hashCode(str: string): number {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function rotate<T>(list: T[], by: number): T[] {
+  if (!list.length) return list;
+  const k = by % list.length;
+  return [...list.slice(k), ...list.slice(0, k)];
+}
+
+async function upsertJob(job: RawJob, s: ImportSettings, now: Date, skipped: Skipped, adapter: SourceAdapter, cache: RunCache): Promise<Verdict> {
   const title = job.title?.trim().slice(0, 160);
   if (!title || !job.companyName?.trim() || !job.externalId || !job.externalUrl) {
     skipped.bad++;
     return { result: "skipped" };
   }
-  if (s.remoteOnly && !job.remote) {
+  if (s.remoteOnly && !job.remote && !adapter.localMarket) {
     skipped.notRemote++;
     return { result: "skipped" };
   }
@@ -189,7 +238,7 @@ async function upsertJob(job: RawJob, s: ImportSettings, now: Date, skipped: Ski
     return { result: "skipped" };
   }
   const language = job.language?.slice(0, 2).toLowerCase() || detectLanguage(`${title} ${text}`);
-  if (s.languages.length && !s.languages.includes(language)) {
+  if (s.languages.length && !s.languages.includes(language) && !adapter.localMarket) {
     skipped.language++;
     return { result: "skipped" };
   }
@@ -228,23 +277,31 @@ async function upsertJob(job: RawJob, s: ImportSettings, now: Date, skipped: Ski
   const workFormat = job.remote ? "REMOTE" : "OFFICE";
   const employment = job.employment ?? "FULL_TIME";
 
-  const company = await upsertCompany(job);
+  const company = await upsertCompany(job, cache);
 
   const existing = await db.vacancy.findUnique({
     where: { source_externalId: { source: job.source, externalId: job.externalId } },
     select: { id: true, status: true, slug: true },
   });
 
-  const skillRows = await Promise.all(
-    skills.map((name) =>
-      db.skill.upsert({
-        where: { slug: skillSlug(name) },
-        create: { slug: skillSlug(name), name },
-        update: {},
-        select: { id: true },
-      }),
-    ),
-  );
+  // Уже есть: полностью пересинхронизируем раз в три дня (по очереди, чтобы размазать нагрузку),
+  // в остальные дни только отмечаем, что вакансия всё ещё в источнике (один запрос вместо шести)
+  const refreshToday = (Math.floor(now.getTime() / 86_400_000) + hashCode(job.externalId)) % 3 === 0;
+  if (existing && existing.status === "PUBLISHED" && !refreshToday) {
+    await db.vacancy.update({ where: { id: existing.id }, data: { lastSeenAt: now, ...(job.expiresAt ? { expiresAt: job.expiresAt } : {}) } });
+    return { result: "updated", slug: existing.slug };
+  }
+
+  const skillRows: Array<{ id: string }> = [];
+  for (const name of skills) {
+    const slug = skillSlug(name);
+    let id = cache.skills.get(slug);
+    if (!id) {
+      id = (await db.skill.upsert({ where: { slug }, create: { slug, name }, update: {}, select: { id: true } })).id;
+      cache.skills.set(slug, id);
+    }
+    skillRows.push({ id });
+  }
 
   const data: Prisma.VacancyUncheckedUpdateInput = {
     title,
@@ -302,9 +359,17 @@ async function upsertJob(job: RawJob, s: ImportSettings, now: Date, skipped: Ski
   return { result: "created", slug };
 }
 
-async function upsertCompany(job: RawJob) {
+async function upsertCompany(job: RawJob, cache: RunCache) {
   const name = job.companyName.trim().slice(0, 120);
   const key = companyKey(name) || name.toLowerCase();
+  const cached = cache.companies.get(key);
+  if (cached) return cached;
+  const result = await upsertCompanyDb(job, name, key);
+  cache.companies.set(key, { id: result.id, name: result.name });
+  return result;
+}
+
+async function upsertCompanyDb(job: RawJob, name: string, key: string) {
   const found = await db.company.findUnique({ where: { nameKey: key } });
   if (found) {
     if (!found.logoUrl && job.companyLogo) {

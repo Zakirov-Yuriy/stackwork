@@ -23,6 +23,8 @@ export async function saveImportSettingsAction(formData: FormData) {
   if (!user || user.role !== "ADMIN") redirect("/forbidden");
 
   const next = normalizeImportSettings({
+    // Форма всегда отдаёт актуальный набор полей: апгрейд старых настроек к ней не применяется
+    settingsVersion: 2,
     enabledSources: formData.getAll("enabledSources").map(String),
     requireSalary: formData.get("requireSalary") === "on",
     remoteOnly: formData.get("remoteOnly") === "on",
@@ -33,6 +35,7 @@ export async function saveImportSettingsAction(formData: FormData) {
     greenhouseBoards: lines(formData.get("greenhouseBoards")),
     leverCompanies: lines(formData.get("leverCompanies")),
     ashbyBoards: lines(formData.get("ashbyBoards")),
+    smartrecruitersCompanies: lines(formData.get("smartrecruitersCompanies")),
   });
   await saveImportSettings(next);
   revalidatePath("/admin/settings");

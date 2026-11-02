@@ -32,6 +32,7 @@ export async function generateMetadata(props: PageProps<"/[locale]/vacancies/[sl
   const { slug } = await props.params;
   const [v, t, locale] = await Promise.all([loadVacancy(slug), getTranslations("vacancy"), getLocale() as Promise<Locale>]);
   if (!v) return { title: t("meta.notFound") };
+  if (v.status === "ARCHIVED") return { title: `${v.title}, ${v.company.name}`, description: t("closed.text"), robots: { index: false, follow: true } };
   const L = makeLabels(locale);
   const salary = L.formatSalary(v.salaryFrom, v.salaryTo, v.currency);
   const description = `${salary} ${L.SALARY_TYPE_LABEL[v.salaryType]} · ${L.GRADE_LABEL[v.grade]} · ${L.WORK_FORMAT_LABEL[v.workFormat]}. ${v.skills.map((s) => s.skill.name).join(", ")}`;
@@ -94,6 +95,7 @@ export default async function VacancyPage(props: PageProps<"/[locale]/vacancies/
   const { slug } = await props.params;
   const v = await loadVacancy(slug);
   if (!v) notFound();
+  const closed = v.status === "ARCHIVED";
 
   const now = new Date();
   const [user, t, locale] = await Promise.all([getCurrentUser(), getTranslations("vacancy"), getLocale() as Promise<Locale>]);
@@ -125,7 +127,7 @@ export default async function VacancyPage(props: PageProps<"/[locale]/vacancies/
   return (
     <>
       <SiteHeader />
-      <JsonLd data={jobPostingJsonLd(v)} />
+      {!closed ? <JsonLd data={jobPostingJsonLd(v)} /> : null}
 
       <main className="mx-auto box-border flex w-full max-w-[1180px] flex-col gap-6 px-6 pb-14 pt-4">
         <nav aria-label={t("breadcrumbs.label")} className={`flex flex-wrap items-center gap-2 text-[13px] ${muted}`}>
@@ -178,15 +180,25 @@ export default async function VacancyPage(props: PageProps<"/[locale]/vacancies/
                 {v.language !== "ru" ? <Chip>{L.LANGUAGE_LABEL[v.language] ?? v.language}</Chip> : null}
               </div>
 
+              {closed ? (
+                <div role="status" className="neu-inset flex flex-wrap items-center gap-3 rounded-2xl px-5 py-4">
+                  <span className="text-[15px] font-extrabold text-[#b45309]">{t("closed.title")}</span>
+                  <span className={`text-sm ${muted}`}>{t("closed.text")}</span>
+                  <Link href="/" className="neu-primary-sm ml-auto" style={{ minHeight: 40, padding: "0 18px", fontSize: 14 }}>
+                    {t("closed.cta")}
+                  </Link>
+                </div>
+              ) : null}
+
               <div className="flex flex-wrap items-center gap-3 pt-1">
-                {imported ? (
+                {closed ? null : imported ? (
                   <ExternalApply href={applyHref} slug={v.slug} source={v.source} large />
                 ) : (
                   <a href="#respond" className="neu-primary-sm" style={{ minHeight: 48, padding: "0 24px", fontSize: 15 }}>
                     {t("apply")}
                   </a>
                 )}
-                <SaveButton vacancyId={v.id} saved={saved.has(v.id)} back={`/vacancies/${v.slug}`} withLabel />
+                {closed ? null : <SaveButton vacancyId={v.id} saved={saved.has(v.id)} back={`/vacancies/${v.slug}`} withLabel />}
                 <ShareButton title={v.title} path={`/vacancies/${v.slug}`} />
                 {v.publishedAt ? (
                   <span className={`ml-auto text-[13px] ${muted}`}>
@@ -237,7 +249,7 @@ export default async function VacancyPage(props: PageProps<"/[locale]/vacancies/
               ) : null}
             </section>
 
-            {imported ? (
+            {closed ? null : imported ? (
               <section id="respond" className="neu-card flex flex-col gap-4 p-8">
                 <div className="flex flex-wrap items-center gap-5">
                   <div className="flex flex-[1_1_320px] flex-col gap-1.5">

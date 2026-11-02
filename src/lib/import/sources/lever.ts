@@ -1,5 +1,6 @@
 import type { RawJob, SourceAdapter } from "../types";
-import { fetchJson, HttpError } from "../http";
+import { fetchJson, HttpError, mapLimit } from "../http";
+import { isItJob } from "../classify";
 import { normalizePeriod } from "../classify";
 
 /**
@@ -30,22 +31,25 @@ export const lever: SourceAdapter = {
   homepage: "https://www.lever.co",
   staleDays: 3,
   needsBoards: true,
+  ignoreAge: true,
   terms: "Открытый список вакансий работодателя. Отклик ведёт на страницу работодателя.",
-  async fetch({ limit, maxAgeDays, boards = [], log }) {
+  async fetch({ limit, boards = [], log, deadline, remoteOnly }) {
     const out: RawJob[] = [];
-    const minDate = Date.now() - maxAgeDays * 86_400_000;
-    for (const company of boards) {
-      let data: LeverJob[];
+    const results = await mapLimit(boards, 6, async (company) => {
+      if (deadline && Date.now() > deadline) return null;
       try {
-        data = await fetchJson<LeverJob[]>(`https://api.lever.co/v0/postings/${encodeURIComponent(company)}?mode=json`);
+        return { company, data: await fetchJson<LeverJob[]>(`https://api.lever.co/v0/postings/${encodeURIComponent(company)}?mode=json`) };
       } catch (e) {
         log(`${company}: ${e instanceof HttpError ? `HTTP ${e.status}` : "ошибка"}`);
-        continue;
+        return null;
       }
+    });
+    for (const r of results) {
+      if (!r) continue;
+      const { company, data } = r;
       let taken = 0;
       for (const j of data) {
         const publishedAt = j.createdAt ? new Date(j.createdAt) : new Date();
-        if (publishedAt.getTime() < minDate) continue;
         if (out.length >= limit) break;
         const html = [
           j.opening ?? j.description ?? "",
@@ -55,6 +59,8 @@ export const lever: SourceAdapter = {
         ].join("\n");
         const commitment = (j.categories?.commitment ?? "").toLowerCase();
         const remote = j.workplaceType === "remote" || /remote/i.test(j.categories?.location ?? "");
+        if (remoteOnly && !remote) continue;
+        if (!isItJob(j.text, [j.categories?.team ?? "", j.categories?.department ?? ""])) continue;
         const sr = j.salaryRange;
         out.push({
           source: "LEVER",

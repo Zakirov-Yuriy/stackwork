@@ -93,9 +93,9 @@ export default async function SettingsPage(props: PageProps<"/admin/settings">) 
 
         <Card title="Доски вакансий работодателей" className="xl:col-span-2">
           <p className="m-0 mb-4 text-sm">
-            Многие компании публикуют вакансии через Greenhouse, Lever или Ashby, и у этих систем есть открытые адреса досок. Укажите идентификаторы компаний (как в адресе их страницы вакансий), по одному в строке. Отклик по таким вакансиям ведёт на сайт самого работодателя.
+            Многие компании публикуют вакансии через Greenhouse, Lever, Ashby или SmartRecruiters, и у этих систем есть открытые адреса досок. Укажите идентификаторы компаний (как в адресе их страницы вакансий), по одному в строке. Отклик по таким вакансиям ведёт на сайт самого работодателя. Сейчас задано досок: Greenhouse {s.greenhouseBoards.length}, Lever {s.leverCompanies.length}, Ashby {s.ashbyBoards.length}, SmartRecruiters {s.smartrecruitersCompanies.length}. Доски обходятся по кругу, если за один запуск не успевают все.
           </p>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4">
             <label className={label}>
               Greenhouse
               <textarea name="greenhouseBoards" defaultValue={s.greenhouseBoards.join("\n")} className="a-textarea font-mono text-sm" placeholder={"gitlab\ngrafanalabs"} />
@@ -110,6 +110,11 @@ export default async function SettingsPage(props: PageProps<"/admin/settings">) 
               Ashby
               <textarea name="ashbyBoards" defaultValue={s.ashbyBoards.join("\n")} className="a-textarea font-mono text-sm" placeholder={"linear\nsupabase"} />
               <span className="text-xs font-normal normal-case tracking-normal text-[var(--a-muted)]">jobs.ashbyhq.com/<b>linear</b></span>
+            </label>
+            <label className={label}>
+              SmartRecruiters
+              <textarea name="smartrecruitersCompanies" defaultValue={s.smartrecruitersCompanies.join("\n")} className="a-textarea font-mono text-sm" placeholder="Ubisoft2" />
+              <span className="text-xs font-normal normal-case tracking-normal text-[var(--a-muted)]">jobs.smartrecruiters.com/<b>Ubisoft2</b></span>
             </label>
           </div>
         </Card>

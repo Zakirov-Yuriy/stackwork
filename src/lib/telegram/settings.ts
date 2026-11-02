@@ -35,7 +35,7 @@ export const DEFAULT_TELEGRAM_SETTINGS: TelegramSettings = {
   botUsername: "",
   dailyLimit: 20,
   salaryFirst: true,
-  sources: ["JOBICY", "REMOTEOK", "HIMALAYAS", "ARBEITNOW", "GREENHOUSE", "LEVER", "ASHBY"],
+  sources: ["TRUDVSEM", "HACKERNEWS", "JOBICY", "REMOTEOK", "HIMALAYAS", "ARBEITNOW", "GREENHOUSE", "LEVER", "ASHBY", "SMARTRECRUITERS"],
   postEmployer: true,
   linkMode: "bot",
   withImage: true,

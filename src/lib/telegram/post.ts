@@ -47,6 +47,9 @@ const SOURCE_NAME: Record<VacancySource, string> = {
   GREENHOUSE: "сайт работодателя",
   LEVER: "сайт работодателя",
   ASHBY: "сайт работодателя",
+  SMARTRECRUITERS: "сайт работодателя",
+  TRUDVSEM: "Работа России",
+  HACKERNEWS: "Hacker News",
 };
 
 /** Текст карточки для канала (HTML). Без ссылок на отклик: их выдаёт бот. */

@@ -1,5 +1,6 @@
 import type { RawJob, SourceAdapter } from "../types";
-import { fetchJson, HttpError } from "../http";
+import { fetchJson, HttpError, mapLimit } from "../http";
+import { isItJob } from "../classify";
 
 /**
  * Greenhouse Job Board API: https://developers.greenhouse.io/job-board.html
@@ -31,25 +32,32 @@ export const greenhouse: SourceAdapter = {
   homepage: "https://www.greenhouse.com",
   staleDays: 3,
   needsBoards: true,
+  ignoreAge: true,
   terms: "Открытая доска вакансий работодателя. Отклик ведёт на страницу работодателя.",
-  async fetch({ limit, maxAgeDays, boards = [], log }) {
+  async fetch({ limit, boards = [], log, deadline, remoteOnly }) {
     const out: RawJob[] = [];
-    const minDate = Date.now() - maxAgeDays * 86_400_000;
-    for (const token of boards) {
-      let data: GreenhouseResponse;
+    // Доски качаем параллельно по несколько штук: их может быть больше сотни
+    const results = await mapLimit(boards, 6, async (token) => {
+      if (deadline && Date.now() > deadline) return null;
       try {
-        data = await fetchJson<GreenhouseResponse>(`https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(token)}/jobs?content=true`);
+        return { token, data: await fetchJson<GreenhouseResponse>(`https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(token)}/jobs?content=true`) };
       } catch (e) {
         log(`${token}: ${e instanceof HttpError ? `HTTP ${e.status}` : "ошибка"}`);
-        continue;
+        return null;
       }
+    });
+    for (const r of results) {
+      if (!r) continue;
+      const { token, data } = r;
       let taken = 0;
       for (const j of data.jobs) {
         const publishedAt = new Date(j.first_published ?? j.updated_at ?? Date.now());
-        if (publishedAt.getTime() < minDate) continue;
         if (out.length >= limit) break;
         const loc = j.location?.name ?? "";
         const remote = /remote/i.test(loc);
+        // Лимит считаем по подходящим вакансиям: офисные и не-IT отсеиваем до записи
+        if (remoteOnly && !remote) continue;
+        if (!isItJob(j.title, (j.departments ?? []).map((d) => d.name))) continue;
         const pay = j.pay_input_ranges?.[0];
         out.push({
           source: "GREENHOUSE",

@@ -8,8 +8,11 @@ import { arbeitnow } from "./arbeitnow";
 import { greenhouse } from "./greenhouse";
 import { lever } from "./lever";
 import { ashby } from "./ashby";
+import { smartrecruiters } from "./smartrecruiters";
+import { trudvsem } from "./trudvsem";
+import { hackernews } from "./hackernews";
 
-export const ADAPTERS: SourceAdapter[] = [remotive, jobicy, remoteok, himalayas, arbeitnow, greenhouse, lever, ashby];
+export const ADAPTERS: SourceAdapter[] = [trudvsem, hackernews, jobicy, remoteok, himalayas, arbeitnow, greenhouse, lever, ashby, smartrecruiters, remotive];
 
 export const ADAPTER_BY_SOURCE = Object.fromEntries(ADAPTERS.map((a) => [a.source, a])) as Record<
   Exclude<VacancySource, "MANUAL">,

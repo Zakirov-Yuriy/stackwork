@@ -183,9 +183,10 @@ export async function popularSkills(limit = 12) {
   return skills.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
 }
 
+/** Страница вакансии: открытые и закрытые (архивные показываем с пометкой, без отклика) */
 export async function getVacancyBySlug(slug: string) {
   return db.vacancy.findFirst({
-    where: { slug, status: "PUBLISHED" },
+    where: { slug, status: { in: ["PUBLISHED", "ARCHIVED"] } },
     include: {
       company: true,
       skills: { orderBy: { order: "asc" }, include: { skill: true } },

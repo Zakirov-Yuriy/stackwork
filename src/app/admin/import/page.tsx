@@ -64,7 +64,8 @@ export default async function ImportPage(props: PageProps<"/admin/import">) {
         {ADAPTERS.map((a) => {
           const enabled = settings.enabledSources.includes(a.source);
           const l = last.get(a.source);
-          const boards = a.source === "GREENHOUSE" ? settings.greenhouseBoards : a.source === "LEVER" ? settings.leverCompanies : a.source === "ASHBY" ? settings.ashbyBoards : null;
+          const boards =
+            a.source === "GREENHOUSE" ? settings.greenhouseBoards : a.source === "LEVER" ? settings.leverCompanies : a.source === "ASHBY" ? settings.ashbyBoards : a.source === "SMARTRECRUITERS" ? settings.smartrecruitersCompanies : null;
           return (
             <div key={a.source} className="a-card flex flex-col gap-3 p-5">
               <div className="flex items-center justify-between gap-2">

@@ -219,6 +219,9 @@ enum VacancySource {
   GREENHOUSE
   LEVER
   ASHBY
+  SMARTRECRUITERS
+  TRUDVSEM
+  HACKERNEWS
 }
 
 enum SalaryPeriod {

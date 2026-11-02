@@ -68,5 +68,10 @@
     "empty": "Add at least one thing: a resume link, GitHub or a few words about yourself",
     "duplicate": "You have already applied for this job"
   },
-  "success": "Application sent. The employer’s reply will appear in My applications."
+  "success": "Application sent. The employer’s reply will appear in My applications.",
+  "closed": {
+    "title": "This job is closed",
+    "text": "The employer has taken it down or it disappeared from the source. Similar open jobs are listed below.",
+    "cta": "All jobs"
+  }
 }
