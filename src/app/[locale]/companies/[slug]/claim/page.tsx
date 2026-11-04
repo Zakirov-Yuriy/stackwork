@@ -11,7 +11,8 @@ import { ClaimForm } from "./claim-form";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("company.claim");
-  return { title: t("title") };
+  // Форма для работодателя, в поиске ей делать нечего (Google уже показывал её как «Is this your company?»)
+  return { title: t("title"), robots: { index: false, follow: false } };
 }
 
 const muted = "text-[color:var(--soft-muted)]";

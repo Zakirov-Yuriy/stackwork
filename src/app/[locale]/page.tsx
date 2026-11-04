@@ -16,7 +16,7 @@ import { getCurrentUser } from "@/lib/session";
 import { makeLabels } from "@/lib/labels";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { alternates: languageAlternates("/") };
+  return { alternates: languageAlternates("/", await getLocale()) };
 }
 
 function buildQuery(base: Record<string, string | string[] | undefined>, patch: Record<string, string | undefined>) {

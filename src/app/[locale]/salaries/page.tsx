@@ -9,8 +9,8 @@ import { SiteFooter } from "@/components/site-footer";
 import { makeLabels } from "@/lib/labels";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("salaries");
-  return { title: t("meta.title"), description: t("meta.description"), alternates: languageAlternates("/salaries") };
+  const [t, locale] = await Promise.all([getTranslations("salaries"), getLocale()]);
+  return { title: t("meta.title"), description: t("meta.description"), alternates: languageAlternates("/salaries", locale) };
 }
 
 function median(xs: number[]) {

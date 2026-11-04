@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { languageAlternates } from "@/i18n/seo";
 import { db } from "@/lib/db";
@@ -17,12 +17,12 @@ const loadCompany = cache((slug: string) => db.company.findUnique({ where: { slu
 
 export async function generateMetadata(props: PageProps<"/[locale]/companies/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
-  const [c, t] = await Promise.all([loadCompany(slug), getTranslations("company.page")]);
+  const [c, t, locale] = await Promise.all([loadCompany(slug), getTranslations("company.page"), getLocale()]);
   if (!c) return { title: t("notFound") };
   return {
     title: t("metaTitle", { name: c.name }),
     description: c.description ?? t("metaDescription", { name: c.name }),
-    alternates: languageAlternates("/companies/" + slug),
+    alternates: languageAlternates("/companies/" + slug, locale),
   };
 }
 

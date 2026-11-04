@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { languageAlternates } from "@/i18n/seo";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("pricing");
-  return { title: t("meta.title"), alternates: languageAlternates("/pricing") };
+  const [t, locale] = await Promise.all([getTranslations("pricing"), getLocale()]);
+  return { title: t("meta.title"), alternates: languageAlternates("/pricing", locale) };
 }
 
 const CARDS = ["publish", "applications", "next"] as const;

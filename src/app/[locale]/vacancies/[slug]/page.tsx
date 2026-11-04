@@ -40,7 +40,7 @@ export async function generateMetadata(props: PageProps<"/[locale]/vacancies/[sl
   return {
     title: `${v.title}, ${v.company.name}`,
     description,
-    alternates: { canonical: localizedPath(path, locale), ...languageAlternates(path) },
+    alternates: languageAlternates(path, locale),
     openGraph: {
       type: "article",
       title: `${v.title} · ${v.company.name}`,

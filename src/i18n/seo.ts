@@ -11,10 +11,12 @@ export function localizedPath(path: string, locale: string): string {
 /**
  * hreflang-ссылки на версии страницы на всех языках (для generateMetadata).
  * path — путь без языкового префикса, например "/vacancies/senior-go-developer".
+ * С locale добавляется canonical без query-параметров: страницы с фильтрами (/?skills=go, ?page=2)
+ * считаются вариантами одной страницы, а не отдельными документами в индексе.
  */
-export function languageAlternates(path: string): NonNullable<Metadata["alternates"]> {
+export function languageAlternates(path: string, locale?: string): NonNullable<Metadata["alternates"]> {
   const languages: Record<string, string> = {};
-  for (const locale of routing.locales) languages[locale] = localizedPath(path, locale);
+  for (const l of routing.locales) languages[l] = localizedPath(path, l);
   languages["x-default"] = localizedPath(path, routing.defaultLocale);
-  return { languages };
+  return locale ? { canonical: localizedPath(path, locale), languages } : { languages };
 }

@@ -10,8 +10,8 @@ import { makeLabels } from "@/lib/labels";
 import { CompanyAvatar } from "@/components/company-avatar";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("company.list");
-  return { title: t("title"), description: t("description"), alternates: languageAlternates("/companies") };
+  const [t, locale] = await Promise.all([getTranslations("company.list"), getLocale()]);
+  return { title: t("title"), description: t("description"), alternates: languageAlternates("/companies", locale) };
 }
 
 export default async function CompaniesPage() {
