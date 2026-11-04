@@ -18,6 +18,7 @@ import {
   parseSalaryText,
   stripHtml,
 } from "./classify";
+import { salaryFromDescription } from "./salary-text";
 import type { RawJob, SourceAdapter } from "./types";
 import { notifyVacancyUrls } from "@/lib/seo/indexing";
 import { postPendingVacancies } from "@/lib/telegram/post";
@@ -262,6 +263,16 @@ async function upsertJob(job: RawJob, s: ImportSettings, now: Date, skipped: Ski
         currency = parsed.currency ?? "USD";
         salaryPeriod = parsed.period;
       }
+    }
+  }
+  // Источник зарплату не отдал: ищем её в тексте описания («The base salary range for this position is $217,000 — $303,900 USD»)
+  if (!salaryFrom && !salaryTo) {
+    const fromText = salaryFromDescription(text);
+    if (fromText) {
+      salaryFrom = fromText.min;
+      salaryTo = fromText.max;
+      currency = fromText.currency;
+      salaryPeriod = fromText.period;
     }
   }
   if (salaryFrom && salaryTo && salaryFrom > salaryTo) [salaryFrom, salaryTo] = [salaryTo, salaryFrom];

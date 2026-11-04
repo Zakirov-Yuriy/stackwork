@@ -68,7 +68,7 @@ function prettyCompany(raw: string | undefined): string {
 
 function cityOf(v: TvVacancy): string | null {
   const addr = v.addresses?.address?.[0]?.location ?? "";
-  const m = /(?:^|,\s*)(?:г\.?\s*|город\s+)([А-ЯЁ][\w-]+(?:\s[А-ЯЁ][\w-]+)?)/u.exec(addr);
+  const m = /(?:^|,\s*)(?:г\.?\s*|город\s+)([А-ЯЁ][\w-]+(?:\s[А-ЯЁ][\w-]+)?)/iu.exec(addr);
   if (m) return m[1];
   const region = v.region?.name ?? "";
   if (/^(Москва|Санкт-Петербург|Севастополь)$/.test(region)) return region;

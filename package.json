@@ -15,6 +15,7 @@
     "db:generate": "prisma generate",
     "postinstall": "prisma generate",
     "jobs:import": "node --import tsx --conditions react-server scripts/import.ts",
+    "jobs:salary": "node --import tsx scripts/backfill-salary.ts",
     "admin:create": "node --import tsx scripts/admin.ts"
   },
   "dependencies": {

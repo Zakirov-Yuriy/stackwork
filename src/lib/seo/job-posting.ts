@@ -1,5 +1,6 @@
 import { siteUrl } from "@/lib/mail";
 import { stripHtml } from "@/lib/import/classify";
+import { countriesFor, countryCodeOf } from "@/lib/seo/geo";
 import type { Employment, SalaryPeriod, Vacancy, Company } from "@/generated/prisma/client";
 
 /**
@@ -63,19 +64,22 @@ export function jobPostingJsonLd(v: V): Record<string, unknown> {
   };
 
   if (v.city) {
+    // Google требует addressCountry; для русских источников это RU, для остальных определяем по городу
+    const country = v.source === "MANUAL" || v.source === "TRUDVSEM" ? "RU" : countryCodeOf(v.city);
     data.jobLocation = {
       "@type": "Place",
-      address: { "@type": "PostalAddress", addressLocality: v.city, addressCountry: v.source === "MANUAL" ? "RU" : undefined },
+      address: { "@type": "PostalAddress", addressLocality: v.city, ...(country ? { addressCountry: country } : {}) },
     };
   }
   if (remote) {
+    // Для удалённой вакансии Google требует хотя бы одну страну; если источник её не назвал, пишем Worldwide
     data.jobLocationType = "TELECOMMUTE";
-    const countries = (v.locationNote ?? (v.source === "MANUAL" ? "Россия" : ""))
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .slice(0, 6);
-    if (countries.length) data.applicantLocationRequirements = countries.map((name) => ({ "@type": "Country", name }));
+    const local = v.source === "MANUAL" || v.source === "TRUDVSEM";
+    let countries = countriesFor(v.locationNote ?? (local ? "Россия" : ""));
+    if (!countries.length && local) countries = ["Russia"];
+    if (!countries.length && v.city) countries = countriesFor(v.city);
+    if (!countries.length) countries = ["Worldwide"];
+    data.applicantLocationRequirements = countries.map((name) => ({ "@type": "Country", name }));
   }
   if (v.salaryFrom || v.salaryTo) {
     data.baseSalary = {
