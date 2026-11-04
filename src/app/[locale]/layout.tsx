@@ -13,7 +13,8 @@ export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Pr
   if (!hasLocale(routing.locales, locale)) return {};
   const t = await getTranslations({ locale, namespace: "common.meta" });
   return {
-    title: { default: t("title"), template: "%s | Stackwork" },
+    // absolute: иначе к заголовку главной применится шаблон корневого layout и получится «… | Stackwork» дважды
+    title: { absolute: t("title"), template: "%s | Stackwork" },
     description: t("description"),
     openGraph: {
       type: "website",

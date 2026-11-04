@@ -5,7 +5,7 @@ import { languageAlternates } from "@/i18n/seo";
 import type { Locale } from "@/i18n/routing";
 import { SiteHeader } from "@/components/site-header";
 import { JsonLd } from "@/components/json-ld";
-import { websiteJsonLd } from "@/lib/seo/job-posting";
+import { websiteJsonLd, organizationJsonLd } from "@/lib/seo/job-posting";
 import { SiteFooter } from "@/components/site-footer";
 import { VacancyCard } from "@/components/vacancy-card";
 import { FiltersSidebar } from "@/components/filters-sidebar";
@@ -68,7 +68,8 @@ export default async function HomePage(props: PageProps<"/[locale]">) {
   return (
     <>
       <SiteHeader />
-      <JsonLd data={websiteJsonLd()} />
+      <JsonLd data={websiteJsonLd(locale as Locale)} />
+      <JsonLd data={organizationJsonLd()} />
 
       <section>
         <div className="mx-auto flex max-w-[1180px] flex-col gap-7 px-6 pb-10 pt-10">

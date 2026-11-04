@@ -92,16 +92,43 @@ export function jobPostingJsonLd(v: V): Record<string, unknown> {
   return data;
 }
 
-export function websiteJsonLd(): Record<string, unknown> {
+/** Домен без протокола: Google «сильно учитывает» его как запасное имя сайта, если основное не подошло */
+function siteHost(): string {
+  return siteUrl("/").replace(/^https?:\/\//, "").replace(/\/$/, "").toLowerCase();
+}
+
+/**
+ * Имя сайта для выдачи Google (developers.google.com/search/docs/appearance/site-names):
+ * берётся из WebSite на главной, alternateName — запасные варианты по убыванию предпочтения.
+ */
+export function websiteJsonLd(locale: "ru" | "en" = "ru"): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": siteUrl("/#website"),
     name: "Stackwork",
+    alternateName: ["Stackwork Jobs", "stackworkjobs", siteHost()],
     url: siteUrl("/"),
+    inLanguage: locale === "ru" ? "ru-RU" : "en-US",
+    publisher: { "@id": siteUrl("/#organization") },
     potentialAction: {
       "@type": "SearchAction",
-      target: { "@type": "EntryPoint", urlTemplate: siteUrl("/?q={search_term_string}") },
+      target: { "@type": "EntryPoint", urlTemplate: siteUrl(locale === "ru" ? "/?q={search_term_string}" : "/en?q={search_term_string}") },
       "query-input": "required name=search_term_string",
     },
+  };
+}
+
+/** Издатель сайта: имя и логотип для сниппетов и панели знаний */
+export function organizationJsonLd(): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": siteUrl("/#organization"),
+    name: "Stackwork",
+    alternateName: ["Stackwork Jobs", "stackworkjobs"],
+    url: siteUrl("/"),
+    logo: { "@type": "ImageObject", url: siteUrl("/icons/icon-512.png"), width: 512, height: 512 },
+    sameAs: ["https://t.me/stackworkjobs"],
   };
 }
