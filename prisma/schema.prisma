@@ -432,3 +432,24 @@ model Setting {
   value     Json
   updatedAt DateTime @updatedAt
 }
+
+enum ContentKind {
+  DIGEST // еженедельный дайджест для канала
+  ARTICLE // ежемесячная статья с данными (заготовка для Хабра и vc.ru)
+}
+
+// Черновики контента из данных: дайджесты и статьи, собранные автоматически (см. src/lib/content)
+model ContentDraft {
+  id        String      @id @default(cuid())
+  kind      ContentKind
+  period    String // «2026-W45» для недели, «2026-10» для месяца
+  title     String
+  markdown  String // текст: для дайджеста HTML Telegram, для статьи Markdown
+  data      Json // цифры, из которых собран текст
+  model     String? // модель нейросети, если текст дописывала она
+  sentAt    DateTime? // когда дайджест ушёл в канал
+  messageId Int? // id сообщения в канале
+  createdAt DateTime    @default(now())
+
+  @@index([kind, createdAt])
+}

@@ -8,8 +8,12 @@ const nextConfig: NextConfig = {
   cacheComponents: false,
   // Загрузка логотипа компании через server action: файл до 2 МБ плюс поля формы
   experimental: { serverActions: { bodySizeLimit: "3mb" } },
-  // Шрифты для карточки вакансии (next/og) должны попасть в бандл функции
-  outputFileTracingIncludes: { "/api/og/vacancy/[slug]": ["./src/assets/fonts/*"] },
+  // Шрифты для карточек (next/og) должны попасть в бандл функций
+  outputFileTracingIncludes: {
+    "/api/og/vacancy/[slug]": ["./src/assets/fonts/*"],
+    "/api/og/digest/[week]": ["./src/assets/fonts/*"],
+    "/api/og/report/[month]": ["./src/assets/fonts/*"],
+  },
   // Для Docker-сборки на VPS (DOCKER_BUILD=1 в Dockerfile): минимальный образ с server.js.
   output: process.env.DOCKER_BUILD ? "standalone" : undefined,
   turbopack: {

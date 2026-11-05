@@ -27,6 +27,10 @@ export type TelegramSettings = {
   connectedAt: string | null;
   /** Итог последнего постинга */
   lastRun: { at: string; sent: number; error: string | null } | null;
+  /** Еженедельный дайджест в канал по понедельникам (крон /api/cron/digest) */
+  digestEnabled: boolean;
+  /** Итог последней отправки дайджеста */
+  lastDigest: { at: string; error: string | null } | null;
 };
 
 export const DEFAULT_TELEGRAM_SETTINGS: TelegramSettings = {
@@ -41,6 +45,8 @@ export const DEFAULT_TELEGRAM_SETTINGS: TelegramSettings = {
   withImage: true,
   connectedAt: null,
   lastRun: null,
+  digestEnabled: false,
+  lastDigest: null,
 };
 
 const KEY = "telegram";
@@ -69,6 +75,11 @@ export function normalizeTelegramSettings(raw: unknown): TelegramSettings {
     withImage: typeof r.withImage === "boolean" ? r.withImage : d.withImage,
     connectedAt: typeof r.connectedAt === "string" ? r.connectedAt : null,
     lastRun: lastRun(r.lastRun),
+    digestEnabled: typeof r.digestEnabled === "boolean" ? r.digestEnabled : d.digestEnabled,
+    lastDigest: (() => {
+      const v = r.lastDigest as Record<string, unknown> | null | undefined;
+      return v && typeof v === "object" && typeof v.at === "string" ? { at: v.at, error: typeof v.error === "string" ? v.error : null } : null;
+    })(),
   };
 }
 

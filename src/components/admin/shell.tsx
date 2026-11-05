@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Newspaper,
   Moon,
   Settings,
   ShieldCheck,
@@ -50,7 +51,10 @@ function menu(b: AdminBadges): Array<{ header?: string; items: Item[] }> {
     },
     {
       header: "Система",
-      items: [{ href: "/admin/settings", label: "Настройки", icon: <Settings size={18} /> }],
+      items: [
+        { href: "/admin/content", label: "Контент", icon: <Newspaper size={18} /> },
+        { href: "/admin/settings", label: "Настройки", icon: <Settings size={18} /> },
+      ],
     },
   ];
 }
