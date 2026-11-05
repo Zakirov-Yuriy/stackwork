@@ -44,10 +44,10 @@ export default async function HomePage(props: PageProps<"/[locale]">) {
   const back = buildQuery(raw, {});
 
   const popularChips = [
-    { label: "Python", href: "/?skills=python" },
-    { label: "Go", href: "/?skills=go" },
-    { label: "TypeScript", href: "/?skills=typescript" },
-    { label: "React", href: "/?skills=react" },
+    { label: "Python", href: "/jobs/python" },
+    { label: "Go", href: "/jobs/go" },
+    { label: "TypeScript", href: "/jobs/typescript" },
+    { label: "React", href: "/jobs/react" },
     { label: "DevOps", href: "/?q=DevOps" },
     { label: "Data", href: "/?q=Data" },
     { label: "QA", href: "/?q=QA" },

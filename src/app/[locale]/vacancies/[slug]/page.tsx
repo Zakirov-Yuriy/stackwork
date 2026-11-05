@@ -141,7 +141,7 @@ export default async function VacancyPage(props: PageProps<"/[locale]/vacancies/
           {v.skills[0] ? (
             <>
               <span aria-hidden="true">/</span>
-              <Link href={`/?skills=${v.skills[0].skill.slug}`} className="hover:text-[color:var(--soft-text)]">
+              <Link href={`/jobs/${v.skills[0].skill.slug}`} className="hover:text-[color:var(--soft-text)]">
                 {v.skills[0].skill.name}
               </Link>
             </>
@@ -240,7 +240,7 @@ export default async function VacancyPage(props: PageProps<"/[locale]/vacancies/
                   <h2 className="m-0 text-lg font-extrabold">{t("sections.stack")}</h2>
                   <div className="flex flex-wrap gap-2.5">
                     {v.skills.map((s) => (
-                      <SkillTag key={s.skillId} href={`/?skills=${s.skill.slug}`}>
+                      <SkillTag key={s.skillId} href={`/jobs/${s.skill.slug}`}>
                         {s.skill.name}
                       </SkillTag>
                     ))}

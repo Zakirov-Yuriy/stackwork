@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { siteUrl } from "@/lib/mail";
 import { routing } from "@/i18n/routing";
 import { localizedPath } from "@/i18n/seo";
+import { listLandingSkills, listLandingCities, MIN_JOBS, MIN_SALARIED } from "@/lib/landing";
 
 /**
  * Карта сайта: индекс /sitemap.xml и части /sitemaps/<name>.xml (страницы, вакансии по 2000,
@@ -38,7 +39,7 @@ function urlset(entries: Entry[]): string {
 export async function sitemapNames(): Promise<string[]> {
   const total = await db.vacancy.count({ where: { status: "PUBLISHED" } });
   const files = Math.max(1, Math.ceil(total / VACANCIES_PER_FILE));
-  return ["pages", ...Array.from({ length: files }, (_, i) => `vacancies-${i}`), "companies"];
+  return ["pages", "landing", ...Array.from({ length: files }, (_, i) => `vacancies-${i}`), "companies"];
 }
 
 export async function sitemapIndexXml(): Promise<string> {
@@ -57,6 +58,18 @@ export async function sitemapXml(name: string): Promise<string | null> {
       { path: "/salaries", changeFrequency: "daily", priority: 0.6 },
       { path: "/pricing", changeFrequency: "monthly", priority: 0.4 },
     ]);
+  }
+  if (name === "landing") {
+    // Посадочные по технологиям: /jobs/<skill>, /jobs/<skill>/remote, /jobs/<skill>/<город>, /salaries/<skill>
+    const [skills, cities] = await Promise.all([listLandingSkills(), listLandingCities()]);
+    const entries: Entry[] = [{ path: "/jobs", changeFrequency: "daily", priority: 0.7 }];
+    for (const s of skills) {
+      entries.push({ path: `/jobs/${s.slug}`, changeFrequency: "daily", priority: 0.7 });
+      if (s.remote >= MIN_JOBS) entries.push({ path: `/jobs/${s.slug}/remote`, changeFrequency: "daily", priority: 0.6 });
+      if (s.salaried >= MIN_SALARIED) entries.push({ path: `/salaries/${s.slug}`, changeFrequency: "weekly", priority: 0.6 });
+    }
+    for (const c of cities) entries.push({ path: `/jobs/${c.skill}/${c.citySlug}`, changeFrequency: "daily", priority: 0.5 });
+    return urlset(entries);
   }
   if (name === "companies") {
     const companies = await db.company.findMany({ where: { vacancies: { some: { status: "PUBLISHED" } } }, select: { slug: true, updatedAt: true }, orderBy: { slug: "asc" } });

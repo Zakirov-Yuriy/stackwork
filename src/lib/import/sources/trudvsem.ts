@@ -68,11 +68,11 @@ function prettyCompany(raw: string | undefined): string {
 
 function cityOf(v: TvVacancy): string | null {
   const addr = v.addresses?.address?.[0]?.location ?? "";
-  const m = /(?:^|,\s*)(?:г\.?\s*|город\s+)([А-ЯЁ][\w-]+(?:\s[А-ЯЁ][\w-]+)?)/iu.exec(addr);
+  // «Свердловская область, г Екатеринбург, …», «г Москва, …», «…, г Нижний Новгород, …» (\w в JS не знает кириллицу)
+  const m = /(?:^|,\s*)(?:г\.?\s+|город\s+)([А-ЯЁ][А-Яа-яЁё-]+(?:\s[А-ЯЁ][А-Яа-яЁё-]+)?)/u.exec(addr);
   if (m) return m[1];
-  const region = v.region?.name ?? "";
-  if (/^(Москва|Санкт-Петербург|Севастополь)$/.test(region)) return region;
-  return region.replace(/\s*(область|край|республика|автономный округ)\s*/i, "").trim() || null;
+  // Без адреса остаётся регион целиком: «Свердловская область», «Пермский край»
+  return v.region?.name?.trim() || null;
 }
 
 export const trudvsem: SourceAdapter = {

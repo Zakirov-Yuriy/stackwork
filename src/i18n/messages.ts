@@ -11,6 +11,7 @@ export const NAMESPACES = [
   "vacancy",
   "company",
   "salaries",
+  "jobs",
   "pricing",
   "auth",
   "employer",

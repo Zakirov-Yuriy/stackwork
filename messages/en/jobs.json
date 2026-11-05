@@ -1,0 +1,55 @@
+{
+  "count": "{count, plural, one {# job} other {# jobs}}",
+  "index": {
+    "title": "Jobs by technology",
+    "description": "IT jobs with the salary shown, by language, framework and tool: job counts, median salary, remote options.",
+    "lead": "Pick a technology: every page lists jobs with the salary shown, the median range and the share of remote roles.",
+    "remote": "remote"
+  },
+  "meta": {
+    "title": "{skill} jobs with salary: {count}",
+    "titleRemote": "Remote {skill} jobs with salary: {count}",
+    "titleCity": "{skill} jobs in {city}: {count}",
+    "description": "{count} for {skill} with the salary shown{median}. Remote: {remote}. Updated daily.",
+    "medianPart": ", median salary {median}"
+  },
+  "h1": "{skill} jobs",
+  "h1Remote": "Remote {skill} jobs",
+  "h1City": "{skill} jobs in {city}",
+  "lead": {
+    "total": "Stackwork lists {count} for {skill}{facet}.",
+    "facetRemote": " that can be done remotely",
+    "facetCity": " in {city}",
+    "salary": "Median salary {median} ({salaried} with a stated range, typical range {p25} – {p75}).",
+    "noSalary": "Salary is shown on {salaried}.",
+    "remote": "Remote: {remote} ({share}%).",
+    "related": "Most often required alongside {skill}: {skills}.",
+    "companies": "Most jobs come from {companies}.",
+    "salaryAlt": "In the other currency: median {median} ({salaried})."
+  },
+  "sections": {
+    "list": "Open jobs",
+    "facets": "Narrow down",
+    "allFormats": "All formats",
+    "remote": "Remote",
+    "cities": "By city",
+    "related": "Related technologies",
+    "salaryLink": "{skill} salaries: median, levels, trend",
+    "grades": "By level",
+    "companies": "Companies",
+    "median": "Median"
+  },
+  "breadcrumbs": {
+    "home": "Jobs",
+    "skills": "By technology"
+  },
+  "empty": "No jobs match this page yet.",
+  "pagination": {
+    "label": "Pages",
+    "next": "Next"
+  },
+  "sort": {
+    "date": "By date",
+    "salary": "By salary"
+  }
+}

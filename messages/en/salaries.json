@@ -3,11 +3,39 @@
     "title": "Salaries by stack",
     "description": "Median salary ranges by technology from jobs published on Stackwork."
   },
-  "lead": "Median salary ranges from published jobs, in rubles, net. The more jobs mention a technology, the more accurate the figure.",
+  "lead": "Median salary ranges from published jobs: rubles per month (net), US dollars per year. Open a technology to see ranges by level, remote vs on-site, and the trend.",
   "empty": "Not enough jobs with a salary specified yet.",
   "columns": {
     "skill": "Technology",
     "range": "Typical range",
     "count": "Jobs"
+  },
+  "intro": {
+    "rub": "In rubles, per month",
+    "usd": "In US dollars, per year",
+    "note": "Median of the range midpoint. The table shows the currencies with the most jobs; others are on the technology page."
+  },
+  "page": {
+    "title": "{skill} salaries in {month}: median {median}",
+    "description": "What {skill} specialists are paid: median {median}, ranges by level (Junior, Middle, Senior, Lead), remote vs on-site, monthly trend. Based on {count} with the salary shown.",
+    "h1": "{skill} salaries",
+    "lead": "Based on {count} with the salary shown on Stackwork in {month}. We take the midpoint of each range, {period}.",
+    "periodMonth": "per month",
+    "periodYear": "per year",
+    "median": "Median",
+    "range": "Typical range",
+    "rangeHint": "25th to 75th percentile",
+    "count": "Jobs with salary",
+    "byGrade": "By level",
+    "byFormat": "Remote vs on-site",
+    "remote": "Remote",
+    "office": "On-site and hybrid",
+    "trend": "Six-month trend",
+    "trendHint": "Median by the month the job was published",
+    "topPaid": "Highest ranges",
+    "jobsLink": "All {skill} jobs ({count})",
+    "notEnough": "Not enough data",
+    "method": "Method: we take published jobs tagged {skill} with a stated range, use the midpoint of each range, then the median and percentiles. Jobs in other currencies are excluded. Figures refresh hourly.",
+    "otherCurrencies": "Other currencies"
   }
 }

@@ -66,7 +66,9 @@ export function VacancyCard({
         {vacancy.language !== "ru" ? <Chip>{L.LANGUAGE_LABEL[vacancy.language] ?? vacancy.language}</Chip> : null}
         {vacancy.acceptsGithubLink ? <Chip>{t("githubApply")}</Chip> : null}
         {vacancy.skills.map((s) => (
-          <SkillTag key={s.skillId}>{s.skill.name}</SkillTag>
+          <SkillTag key={s.skillId} href={`/jobs/${s.skill.slug}`}>
+            {s.skill.name}
+          </SkillTag>
         ))}
       </div>
 

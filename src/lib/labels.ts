@@ -24,7 +24,7 @@ export function isEmployerBoard(source: VacancySource): boolean {
 /** Название языка вакансии на нём самом */
 export const LANGUAGE_LABEL: Record<string, string> = { en: "English", de: "Deutsch", es: "Español", fr: "Français", pt: "Português", ru: "Русский" };
 
-const CURRENCY_SIGN: Record<string, string> = {
+export const CURRENCY_SIGN: Record<string, string> = {
   RUB: "₽",
   USD: "$",
   EUR: "€",

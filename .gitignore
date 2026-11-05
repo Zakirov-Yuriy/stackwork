@@ -47,3 +47,9 @@ src/generated/
 # локальные заметки с секретами (строки подключения, токены)
 DATABASE_URL.md
 *.secret.md
+
+# настройки AI-инструментов разработчика (Claude Code, Windsurf, Cursor, skills): личные, в репозиторий не нужны
+.agents/
+.claude/
+.windsurf/
+.cursor/
