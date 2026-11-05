@@ -263,7 +263,7 @@ Soft UI (неоморфизм): светло-серый фон `#E8EBF0`, эле
 
 ### Индексация
 
-- `robots.txt` и `sitemap.xml` генерируются сами (`src/app/robots.ts`, `sitemap.ts`), админка и кабинеты закрыты от индексации.
+- `robots.txt` и карта сайта генерируются сами (`src/app/robots.ts`, `src/lib/seo/sitemaps.ts`): `/sitemap.xml` это индекс, части `/sitemaps/pages.xml`, `/sitemaps/vacancies-<n>.xml` (по 2000 вакансий), `/sitemaps/companies.xml`, кеш на час. Админка и кабинеты закрыты от индексации.
 - На страницах вакансий разметка schema.org `JobPosting` (блок «Вакансии» в Google), на главной `WebSite` с поиском.
 - Подтверждение сайта: добавьте коды из Google Search Console и Яндекс Вебмастера в `GOOGLE_SITE_VERIFICATION` и `YANDEX_VERIFICATION`, после деплоя подтвердите и отправьте `sitemap.xml` в обоих.
 - IndexNow: задайте `INDEXNOW_KEY`, новые вакансии после импорта и модерации сразу уходят в Яндекс и Bing.
