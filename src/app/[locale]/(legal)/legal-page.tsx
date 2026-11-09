@@ -4,18 +4,23 @@ import { SiteFooter } from "@/components/site-footer";
 
 export type LegalSection = { title: string; paragraphs: string[] };
 
+/** Контакт и оператор для юридических страниц и подвала: CONTACT_EMAIL и необязательный LEGAL_OPERATOR */
+export function legalContacts() {
+  return {
+    email: process.env.CONTACT_EMAIL?.trim() || null,
+    operator: process.env.LEGAL_OPERATOR?.trim() || null,
+  };
+}
+
 /**
  * Юридическая страница. Документы только на русском (152-ФЗ): для других языков над текстом плашка.
- * sections: готовый текст (заголовок и абзацы) или, пока документ не написан, только заголовки,
- * тогда вместо текста показывается маркер [ТЕКСТ ДОКУМЕНТА], чтобы ссылки из футера не вели в 404.
- * Реквизиты оператора: LEGAL_OPERATOR («ИП Иванов И. И., ОГРНИП …») и CONTACT_EMAIL.
+ * sections: готовый текст (заголовок и абзацы). Внизу контактная почта из CONTACT_EMAIL и, если задано,
+ * наименование оператора из LEGAL_OPERATOR (сервис бесплатный, юридическое лицо не обязательно,
+ * но Google Play и 152-ФЗ ждут, что в политике назван тот, кто отвечает за данные).
  */
-export async function LegalPage({ title, intro, sections, updated }: { title: string; intro: string; sections: string[] | LegalSection[]; updated?: string }) {
+export async function LegalPage({ title, intro, sections, updated }: { title: string; intro: string; sections: LegalSection[]; updated?: string }) {
   const [locale, t] = await Promise.all([getLocale(), getTranslations("legal")]);
-  const draft = sections.length === 0 || typeof sections[0] === "string";
-  const list: LegalSection[] = (sections as (string | LegalSection)[]).map((s) => (typeof s === "string" ? { title: s, paragraphs: [] } : s));
-  const operator = process.env.LEGAL_OPERATOR?.trim() || "[РЕКВИЗИТЫ ОПЕРАТОРА]";
-  const contact = process.env.CONTACT_EMAIL?.trim() || "[ПОЧТА ПОДДЕРЖКИ]";
+  const { email, operator } = legalContacts();
   return (
     <>
       <SiteHeader />
@@ -31,30 +36,31 @@ export async function LegalPage({ title, intro, sections, updated }: { title: st
               {t("notice")}
             </p>
           ) : null}
-          {draft ? (
-            <p className="m-0 rounded-xl bg-[#FFF0C2] px-4 py-3 text-sm font-semibold text-[#7A5200]">
-              Документ в подготовке. Ниже структура, текст появится до запуска.
-            </p>
-          ) : null}
-          {list.map((s, i) => (
+          {sections.map((s, i) => (
             <section key={s.title} className="flex flex-col gap-2">
               <h2 className="m-0 text-lg font-extrabold">
                 {i + 1}. {s.title}
               </h2>
-              {s.paragraphs.length === 0 ? (
-                <p className="m-0 text-[color:var(--soft-muted)]">[ТЕКСТ ДОКУМЕНТА]</p>
-              ) : (
-                s.paragraphs.map((p) => (
-                  <p key={p.slice(0, 40)} className="m-0">
-                    {p}
-                  </p>
-                ))
-              )}
+              {s.paragraphs.map((p) => (
+                <p key={p.slice(0, 40)} className="m-0">
+                  {p}
+                </p>
+              ))}
             </section>
           ))}
-          <p className="m-0 border-t border-[color:var(--soft-dark)] pt-4 text-sm text-[color:var(--soft-muted)]">
-            Оператор: {operator}. Контакт: {contact}.
-          </p>
+          {email || operator ? (
+            <p className="m-0 border-t border-[color:var(--soft-dark)] pt-4 text-sm text-[color:var(--soft-muted)]">
+              {operator ? `Оператор: ${operator}. ` : null}
+              {email ? (
+                <>
+                  Контакт:{" "}
+                  <a href={`mailto:${email}`} className="font-semibold text-[color:var(--soft-blue)]">
+                    {email}
+                  </a>
+                </>
+              ) : null}
+            </p>
+          ) : null}
         </article>
       </main>
       <SiteFooter compact />

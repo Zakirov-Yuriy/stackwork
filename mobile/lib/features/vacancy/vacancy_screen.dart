@@ -127,7 +127,7 @@ class _Body extends ConsumerWidget {
         ),
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+            padding: EdgeInsets.fromLTRB(20, 20, 20, detail.closed ? 24 + MediaQuery.paddingOf(context).bottom : 24),
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -62,7 +62,7 @@ class _Body extends StatelessWidget {
     final trendMax = d.trend.fold<int>(1, (m, t) => (t.median ?? 0) > m ? t.median! : m);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+      padding: EdgeInsets.fromLTRB(20, 16, 20, 28 + MediaQuery.paddingOf(context).bottom),
       children: [
         Text('Зарплаты ${d.skill.name}', style: Soft.style(size: 26, weight: 800, height: 1.15, letterSpacing: -0.5)),
         const SizedBox(height: 4),

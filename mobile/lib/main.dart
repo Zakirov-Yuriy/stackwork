@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -179,7 +181,8 @@ class _FeedEntryState extends ConsumerState<_FeedEntry> {
   Widget build(BuildContext context) => const FeedScreen();
 }
 
-/// Нижняя навигация в стиле Soft UI: активная вкладка подсвечена синим знаком
+/// Нижняя навигация: парящая полупрозрачная плашка со скруглёнными углами и размытием,
+/// лента прокручивается под ней (extendBody), активная вкладка подсвечена синим знаком
 class _Shell extends StatelessWidget {
   const _Shell({required this.shell});
   final StatefulNavigationShell shell;
@@ -195,22 +198,42 @@ class _Shell extends StatelessWidget {
   Widget build(BuildContext context) {
     final bottom = MediaQuery.paddingOf(context).bottom;
     return Scaffold(
+      extendBody: true,
       body: shell,
-      bottomNavigationBar: Container(
-        padding: EdgeInsets.fromLTRB(12, 8, 12, 8 + bottom),
-        decoration: BoxDecoration(color: Soft.bg, boxShadow: [BoxShadow(color: Soft.dark.withValues(alpha: 0.35), blurRadius: 18, offset: const Offset(0, -6))]),
-        child: Row(
-          children: [
-            for (var i = 0; i < _tabs.length; i++)
-              Expanded(
-                child: _Tab(
-                  icon: shell.currentIndex == i ? _tabs[i].$2 : _tabs[i].$1,
-                  label: _tabs[i].$3,
-                  active: shell.currentIndex == i,
-                  onTap: () => shell.goBranch(i, initialLocation: i == shell.currentIndex),
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.fromLTRB(14, 0, 14, bottom > 0 ? bottom + 6 : 12),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Soft.bg.withValues(alpha: 0.72),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.65), width: 1),
+                boxShadow: [
+                  BoxShadow(color: Soft.dark.withValues(alpha: 0.55), blurRadius: 24, offset: const Offset(0, 10)),
+                  BoxShadow(color: Colors.white.withValues(alpha: 0.7), blurRadius: 12, offset: const Offset(0, -4)),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+                child: Row(
+                  children: [
+                    for (var i = 0; i < _tabs.length; i++)
+                      Expanded(
+                        child: _Tab(
+                          icon: shell.currentIndex == i ? _tabs[i].$2 : _tabs[i].$1,
+                          label: _tabs[i].$3,
+                          active: shell.currentIndex == i,
+                          onTap: () => shell.goBranch(i, initialLocation: i == shell.currentIndex),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-          ],
+            ),
+          ),
         ),
       ),
     );
@@ -232,7 +255,7 @@ class _Tab extends StatelessWidget {
       label: label,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(22),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 6),
           child: Column(
@@ -240,13 +263,13 @@ class _Tab extends StatelessWidget {
             children: [
               AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                width: 46,
-                height: 34,
+                curve: Curves.easeOut,
+                width: 48,
+                height: 32,
                 decoration: BoxDecoration(
-                  color: Soft.bg,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   gradient: active ? Soft.primaryGradient : null,
-                  boxShadow: active ? Soft.raised(6) : null,
+                  boxShadow: active ? [BoxShadow(color: Soft.blue.withValues(alpha: 0.35), blurRadius: 12, offset: const Offset(0, 4))] : null,
                 ),
                 child: Icon(icon, size: 21, color: active ? Colors.white : Soft.muted),
               ),

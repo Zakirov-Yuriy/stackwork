@@ -54,3 +54,6 @@ android/key.properties
 
 # Сборочные файлы Gradle
 /android/build/
+
+# Снимки экранов из test/screenshots_test.dart
+/test/goldens/

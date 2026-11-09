@@ -55,7 +55,7 @@ class _FakeAdapter implements HttpClientAdapter {
         status = 401;
         json = '{"error":{"code":"UNAUTHORIZED","message":"Нужен вход"}}';
       } else {
-        json = '{"user":{"id":"u1","email":"anna@example.com","name":"Тест","role":"CANDIDATE","emailVerified":true},"applicationsCount":2,"savedCount":1}';
+        json = '{"user":{"id":"u1","email":"anna@example.com","name":"Тест","role":"CANDIDATE","emailVerified":true},"counts":{"saved":1,"applications":2}}';
       }
     } else if (path == '/me/saved') {
       json = '{"items":[]}';

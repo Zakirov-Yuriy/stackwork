@@ -29,7 +29,7 @@ class ProfileScreen extends ConsumerWidget {
         body: SafeArea(
           bottom: false,
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
+            padding: EdgeInsets.fromLTRB(20, 14, 20, 28 + MediaQuery.paddingOf(context).bottom),
             children: [
               Text('Профиль', style: Soft.style(size: 26, weight: 800, height: 1.15, letterSpacing: -0.5)),
               const SizedBox(height: 4),
@@ -64,7 +64,7 @@ class ProfileScreen extends ConsumerWidget {
           },
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
+            padding: EdgeInsets.fromLTRB(20, 14, 20, 28 + MediaQuery.paddingOf(context).bottom),
             children: [
               Row(
                 children: [

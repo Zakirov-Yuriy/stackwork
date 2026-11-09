@@ -138,7 +138,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               ...list.when(
                 loading: () => [
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                    padding: EdgeInsets.fromLTRB(20, 12, 20, 24 + MediaQuery.paddingOf(context).bottom),
                     sliver: SliverList.separated(itemCount: 4, itemBuilder: (_, _) => const VacancyCardSkeleton(), separatorBuilder: (_, _) => const SizedBox(height: 14)),
                   ),
                 ],
@@ -170,7 +170,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     )
                   else
                     SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                      padding: EdgeInsets.fromLTRB(20, 12, 20, 24 + MediaQuery.paddingOf(context).bottom),
                       sliver: SliverList.separated(
                         itemCount: data.items.length + (data.hasMore ? 1 : 0),
                         separatorBuilder: (_, _) => const SizedBox(height: 14),

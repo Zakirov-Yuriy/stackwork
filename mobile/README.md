@@ -22,7 +22,7 @@ flutter run                       # телефон по USB или эмулят�
 flutter run --dart-define=API_BASE=http://10.0.2.2:3000
 ```
 
-Проверки: `flutter analyze` и `flutter test` (виджет-тесты гоняют приложение на снимках реальных ответов API из `test/fixtures`).
+Проверки: `flutter analyze` и `flutter test` (виджет-тесты гоняют приложение на снимках реальных ответов API из `test/fixtures`). Снимки экранов без эмулятора: `flutter test --dart-define=SCREENSHOTS=true --update-goldens test/screenshots_test.dart`, результат в `test/goldens/`.
 
 ## Структура
 

@@ -45,18 +45,19 @@ class VacancyCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Row(
+          // Вилка целиком, грейд и формат рядом или с переносом на следующую строку, если не влезают
+          Wrap(
+            spacing: 10,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Flexible(
-                child: Text(
-                  v.salary.isSet ? v.salary.formatted : 'Зарплата не указана',
-                  style: Soft.style(size: 15, weight: 600, color: v.salary.isSet ? Soft.blue : Soft.muted, mono: true),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+              Text(
+                v.salary.isSet ? v.salary.formatted : 'Зарплата не указана',
+                style: Soft.style(size: 15, weight: 600, color: v.salary.isSet ? Soft.blue : Soft.muted, mono: true),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(width: 10),
-              Flexible(child: Text('${v.gradeLabel} · ${v.workFormatLabel}', style: Soft.style(size: 12, weight: 700, color: Soft.muted), maxLines: 1, overflow: TextOverflow.ellipsis)),
+              Text('${v.gradeLabel} · ${v.workFormatLabel}', style: Soft.style(size: 12, weight: 700, color: Soft.muted), maxLines: 1, overflow: TextOverflow.ellipsis),
             ],
           ),
           if (showSkills && v.skills.isNotEmpty) ...[

@@ -32,7 +32,7 @@ class CompanyScreen extends ConsumerWidget {
                 loading: () => const Center(child: CircularProgressIndicator(color: Soft.blue)),
                 error: (e, _) => StatusView(icon: Icons.cloud_off_rounded, title: 'Не удалось загрузить', text: e is ApiException ? e.message : null, actionLabel: 'Повторить', onAction: () => ref.invalidate(companyProvider(slug))),
                 data: (d) => ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+                  padding: EdgeInsets.fromLTRB(20, 16, 20, 28 + MediaQuery.paddingOf(context).bottom),
                   children: [
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,

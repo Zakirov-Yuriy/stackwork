@@ -187,12 +187,12 @@ class SoftChip extends StatelessWidget {
             ? BoxDecoration(color: Soft.bgRaised, borderRadius: BorderRadius.circular(999))
             : BoxDecoration(color: Soft.bg, borderRadius: BorderRadius.circular(999), boxShadow: Soft.raised(4));
     final text = Text(label, style: Soft.style(size: flat ? 12 : 13, weight: 700, color: active ? Colors.white : Soft.text));
+    // Align с widthFactor: чипс занимает ширину текста, а не всю доступную (важно внутри Wrap)
     final body = Container(
       height: flat ? 28 : 36,
       padding: EdgeInsets.symmetric(horizontal: flat ? 10 : 14),
       decoration: decoration,
-      alignment: Alignment.center,
-      child: text,
+      child: Align(widthFactor: 1, child: text),
     );
     if (onTap == null) return body;
     return Material(

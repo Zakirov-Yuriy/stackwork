@@ -63,7 +63,7 @@ class _SalariesScreenState extends ConsumerState<SalariesScreen> {
                   if (rows.isEmpty) return [const SliverFillRemaining(hasScrollBody: false, child: StatusView(title: 'Пока мало данных', text: 'Вакансий с зарплатой в этой валюте меньше пяти.'))];
                   return [
                     SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                      padding: EdgeInsets.fromLTRB(20, 0, 20, 24 + MediaQuery.paddingOf(context).bottom),
                       sliver: SliverList.separated(
                         itemCount: rows.length,
                         separatorBuilder: (_, _) => const SizedBox(height: 12),

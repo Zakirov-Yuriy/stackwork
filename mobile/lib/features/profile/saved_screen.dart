@@ -55,7 +55,7 @@ class SavedScreen extends ConsumerWidget {
                           SliverFillRemaining(hasScrollBody: false, child: StatusView(icon: Icons.bookmark_border_rounded, title: 'Пока пусто', text: 'Нажмите на закладку в карточке вакансии, и она появится здесь.', actionLabel: 'К вакансиям', onAction: () => context.go('/')))
                         else
                           SliverPadding(
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                            padding: EdgeInsets.fromLTRB(20, 0, 20, 24 + MediaQuery.paddingOf(context).bottom),
                             sliver: SliverList.separated(itemCount: items.length, separatorBuilder: (_, _) => const SizedBox(height: 14), itemBuilder: (_, i) => VacancyCard(vacancy: items[i])),
                           ),
                       ],

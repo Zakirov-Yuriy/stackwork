@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { legalContacts } from "@/app/[locale]/(legal)/legal-page";
 import { Link } from "@/i18n/navigation";
 import { BrandMark } from "@/components/brand-mark";
 
@@ -16,8 +17,18 @@ function Brand({ size = "md" }: { size?: "md" | "sm" }) {
 
 export async function SiteFooter({ compact = false }: { compact?: boolean }) {
   const t = await getTranslations("common.footer");
-  // Реквизиты оператора персональных данных: из LEGAL_OPERATOR, пока не задано, заглушка из переводов
-  const operator = process.env.LEGAL_OPERATOR?.trim() || t("operator");
+  // Контакт из CONTACT_EMAIL и, если задано, наименование оператора из LEGAL_OPERATOR (см. legal-page.tsx)
+  const { email, operator } = legalContacts();
+  const contact = (
+    <>
+      {operator ? <span>{operator}</span> : null}
+      {email ? (
+        <a href={`mailto:${email}`} className={linkCls}>
+          {email}
+        </a>
+      ) : null}
+    </>
+  );
   if (compact) {
     return (
       <footer className="mt-auto">
@@ -32,7 +43,10 @@ export async function SiteFooter({ compact = false }: { compact?: boolean }) {
           <Link href="/terms" className={linkCls}>
             {t("terms")}
           </Link>
-          <span className="ml-auto text-[color:var(--soft-muted)]">{t("copyright")} · {operator}</span>
+          <span className="ml-auto flex flex-wrap items-center gap-3 text-[color:var(--soft-muted)]">
+            <span>{t("copyright")}</span>
+            {contact}
+          </span>
         </div>
       </footer>
     );
@@ -92,7 +106,7 @@ export async function SiteFooter({ compact = false }: { compact?: boolean }) {
       </div>
       <div className="mx-auto flex max-w-[1180px] flex-wrap gap-4 px-6 pb-6 text-xs text-[color:var(--soft-muted)]">
         <span>{t("copyright")}</span>
-        <span>{operator}</span>
+        {contact}
       </div>
     </footer>
   );
