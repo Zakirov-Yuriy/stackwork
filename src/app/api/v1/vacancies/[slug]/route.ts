@@ -1,12 +1,14 @@
 import type { NextRequest } from "next/server";
 import { getVacancyBySlug, similarVacancies } from "@/lib/vacancies";
-import { toVacancyDto, jsonError } from "@/lib/api";
+import { apiUser, toVacancyDto, jsonError } from "@/lib/api";
+import { savedIdsFor } from "@/lib/saved";
 
 /** GET /api/v1/vacancies/:slug — карточка вакансии с полным описанием. */
-export async function GET(_request: NextRequest, ctx: RouteContext<"/api/v1/vacancies/[slug]">) {
+export async function GET(request: NextRequest, ctx: RouteContext<"/api/v1/vacancies/[slug]">) {
   const { slug } = await ctx.params;
-  const v = await getVacancyBySlug(slug);
+  const [v, user] = await Promise.all([getVacancyBySlug(slug), apiUser(request)]);
   if (!v) return jsonError(404, "Вакансия не найдена");
+  const saved = await savedIdsFor(user?.id, [v.id]);
 
   const similar = await similarVacancies(
     v.id,
@@ -15,6 +17,10 @@ export async function GET(_request: NextRequest, ctx: RouteContext<"/api/v1/vaca
 
   return Response.json({
     ...toVacancyDto(v),
+    // ARCHIVED: вакансия закрыта, отклик недоступен, показываем похожие
+    status: v.status,
+    closed: v.status !== "PUBLISHED",
+    saved: saved.has(v.id),
     company: {
       slug: v.company.slug,
       name: v.company.name,

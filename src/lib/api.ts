@@ -1,4 +1,6 @@
+import type { NextRequest } from "next/server";
 import type { VacancyCard } from "@/lib/vacancies";
+import { getCurrentUser } from "@/lib/session";
 import {
   GRADE_LABEL,
   WORK_FORMAT_LABEL,
@@ -60,4 +62,27 @@ export function toVacancyDto(v: VacancyCard) {
 
 export function jsonError(status: number, message: string) {
   return Response.json({ error: { status, message } }, { status });
+}
+
+/** Пользователь по заголовку Authorization: Bearer <JWT> (тот же токен, что в cookie сайта). */
+export async function apiUser(request: NextRequest | Request) {
+  return getCurrentUser(request.headers.get("authorization"));
+}
+
+/** Тело запроса как объект; пустое или битое тело даёт {} */
+export async function readJson(request: Request): Promise<Record<string, unknown>> {
+  try {
+    const data = (await request.json()) as unknown;
+    return data && typeof data === "object" ? (data as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function str(v: unknown, max = 500): string {
+  return typeof v === "string" ? v.trim().slice(0, max) : "";
+}
+
+export function toUserDto(u: { id: string; email: string; name: string | null; role: string; emailVerifiedAt: Date | null; company?: { slug: string; name: string } | null }) {
+  return { id: u.id, email: u.email, name: u.name, role: u.role, emailVerified: Boolean(u.emailVerifiedAt), company: u.company ? { slug: u.company.slug, name: u.company.name } : null };
 }

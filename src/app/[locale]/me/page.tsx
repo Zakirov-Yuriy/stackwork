@@ -50,7 +50,14 @@ export default async function MePage(props: PageProps<"/[locale]/me">) {
             {user.name ?? user.email} · {t("applications.count", { count: applications.length })}
           </p>
         </div>
-        {user.role === "CANDIDATE" ? <MeTabs active="applications" /> : null}
+        {user.role === "CANDIDATE" ? (
+          <div className="flex flex-wrap items-center gap-4">
+            <MeTabs active="applications" />
+            <Link href="/me/delete" className="ml-auto text-[13px] font-semibold text-[color:var(--soft-muted)] hover:text-[#b42318]">
+              {t("delete.link")}
+            </Link>
+          </div>
+        ) : null}
 
         {user.role !== "CANDIDATE" ? (
           <div className="neu-card-sm p-8">

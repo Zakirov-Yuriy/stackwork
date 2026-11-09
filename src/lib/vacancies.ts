@@ -17,6 +17,8 @@ export type VacancyFilters = {
   experience?: ExperienceLevel;
   employment?: Employment[];
   salaryFrom?: number;
+  /** Валюта для фильтра по зарплате (RUB, USD, EUR…); без неё сумма сравнивается как есть */
+  currency?: string;
   skills?: string[]; // slugs
   sort?: "date" | "salary";
   page?: number;
@@ -46,6 +48,7 @@ export function parseFilters(params: RawParams): VacancyFilters {
   const salaryRaw = typeof params.salary === "string" ? params.salary.replace(/\D/g, "") : "";
   const salaryFrom = salaryRaw ? Number(salaryRaw) : undefined;
   const expRaw = typeof params.exp === "string" ? params.exp : undefined;
+  const currencyRaw = typeof params.currency === "string" ? params.currency.trim().toUpperCase() : "";
   const pageRaw = typeof params.page === "string" ? Number(params.page) : 1;
   const sortRaw = typeof params.sort === "string" ? params.sort : "date";
 
@@ -57,6 +60,7 @@ export function parseFilters(params: RawParams): VacancyFilters {
     experience: expRaw && (EXPERIENCES as string[]).includes(expRaw) ? (expRaw as ExperienceLevel) : undefined,
     employment: pick(list(params.employment), EMPLOYMENTS),
     salaryFrom: salaryFrom && Number.isFinite(salaryFrom) ? salaryFrom : undefined,
+    currency: /^[A-Z]{3}$/.test(currencyRaw) ? currencyRaw : undefined,
     skills: list(params.skills),
     sort: sortRaw === "salary" ? "salary" : "date",
     page: Number.isFinite(pageRaw) && pageRaw >= 1 ? Math.floor(pageRaw) : 1,
@@ -112,6 +116,7 @@ function buildWhere(f: VacancyFilters, ftsIds: string[] | null): Prisma.VacancyW
     and.push({
       OR: [{ salaryTo: { gte: f.salaryFrom } }, { salaryTo: null, salaryFrom: { gte: f.salaryFrom } }],
     });
+    if (f.currency) and.push({ currency: f.currency });
   }
   if (f.skills?.length) {
     for (const slug of f.skills) {

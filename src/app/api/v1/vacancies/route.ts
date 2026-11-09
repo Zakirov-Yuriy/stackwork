@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { parseFilters, searchVacancies } from "@/lib/vacancies";
-import { toVacancyDto } from "@/lib/api";
+import { apiUser, toVacancyDto } from "@/lib/api";
+import { savedIdsFor } from "@/lib/saved";
 
 /**
  * GET /api/v1/vacancies
@@ -13,6 +14,7 @@ import { toVacancyDto } from "@/lib/api";
  *   exp        NONE | ONE_TO_THREE | THREE_TO_SIX | SIX_PLUS
  *   employment FULL_TIME | PART_TIME | CONTRACT, можно несколько
  *   salary     минимальная сумма, число
+ *   currency   валюта для salary (RUB | USD | EUR …); без неё сумма сравнивается как есть
  *   skills     slug-и технологий через запятую: go,postgresql
  *   sort       date (по умолчанию) | salary
  *   page       номер страницы, с 1
@@ -26,16 +28,18 @@ export async function GET(request: NextRequest) {
   }
 
   const filters = parseFilters(raw);
-  const result = await searchVacancies(filters);
+  const [result, user] = await Promise.all([searchVacancies(filters), apiUser(request)]);
+  // С токеном в каждой карточке приходит флаг «сохранено»
+  const saved = await savedIdsFor(user?.id, result.items.map((v) => v.id));
 
   return Response.json(
     {
-      items: result.items.map(toVacancyDto),
+      items: result.items.map((v) => ({ ...toVacancyDto(v), saved: saved.has(v.id) })),
       page: result.page,
       pageSize: result.pageSize,
       pages: result.pages,
       total: result.total,
     },
-    { headers: { "Cache-Control": "public, max-age=30, stale-while-revalidate=60" } },
+    { headers: { "Cache-Control": user ? "private, no-store" : "public, max-age=30, stale-while-revalidate=60" } },
   );
 }

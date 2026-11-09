@@ -25,5 +25,21 @@
   "verify": {
     "text": "Verify your email {email}: until then {what}. The email with the link was sent when you signed up.",
     "resend": "Resend the email"
+  },
+  "delete": {
+    "title": "Delete account",
+    "subtitle": "The account {email} will be deleted permanently.",
+    "whatIsDeleted": "Your profile, job applications, saved jobs and all one-time email links are deleted. Employers you applied to will no longer see your applications. Data is removed immediately; database backups are purged within 30 days.",
+    "employerNote": "The company page and published jobs stay on the site; if you want them removed too, contact us before deleting the account.",
+    "password": "Password to confirm",
+    "confirm": "I understand the account and all its data will be deleted permanently",
+    "submit": "Delete account",
+    "pending": "Deleting…",
+    "back": "Back to dashboard",
+    "wrongPassword": "Wrong password",
+    "confirmRequired": "Tick the confirmation box",
+    "adminError": "Admin accounts can only be deleted from the console",
+    "tooMany": "Too many attempts, please wait",
+    "link": "Delete account"
   }
 }
