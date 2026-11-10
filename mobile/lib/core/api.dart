@@ -150,6 +150,14 @@ class ApiClient {
 
   Future<void> logout() => setToken(null);
 
+  /// Регистрация устройства для push: Firebase Installation ID. Возвращает, настроен ли сервер на отправку
+  Future<bool> registerDevice(String fid, {String? appVersion}) async {
+    final j = await _request('PUT', '/me/devices', body: {'token': fid, 'kind': 'fid', 'platform': 'android', 'appVersion': ?appVersion});
+    return j['enabled'] == true;
+  }
+
+  Future<void> unregisterDevice(String token) => _request('DELETE', '/me/devices', body: {'token': token});
+
   Future<List<Vacancy>> saved() async {
     final j = await _request('GET', '/me/saved');
     return (j['items'] as List? ?? const []).whereType<Map<String, dynamic>>().map(Vacancy.fromJson).toList();

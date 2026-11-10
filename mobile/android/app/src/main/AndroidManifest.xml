@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Push-уведомления: на Android 13+ разрешение запрашивается после входа в аккаунт -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:label="Stackwork"
         android:name="${applicationName}"
@@ -21,6 +23,11 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <!-- Нажатие на push открывает приложение и передаёт данные уведомления во Flutter -->
+            <intent-filter>
+                <action android:name="FLUTTER_NOTIFICATION_CLICK"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -38,6 +45,10 @@
                 <data android:scheme="https" android:host="stackworkjobs.vercel.app" android:pathPrefix="/salaries"/>
             </intent-filter>
         </activity>
+        <!-- Оформление push от Firebase, когда приложение в фоне: монохромная иконка, цвет, канал -->
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_notification"/>
+        <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/brand_blue"/>
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="applications"/>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

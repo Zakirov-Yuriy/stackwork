@@ -17,6 +17,8 @@ export async function GET(request: NextRequest) {
       coverLetter: a.coverLetter,
       githubUrl: a.githubUrl,
       resumeUrl: a.resumeUrl,
+      employerNote: a.employerNote,
+      statusChangedAt: a.statusChangedAt?.toISOString() ?? null,
       createdAt: a.createdAt.toISOString(),
       updatedAt: a.updatedAt.toISOString(),
       vacancy: { ...toVacancyDto(a.vacancy), status: a.vacancy.status },

@@ -153,20 +153,41 @@ class ProfileScreen extends ConsumerWidget {
                             SoftCard(
                               padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
                               onTap: () => context.push('/vacancies/${a.vacancy.slug}'),
-                              child: Row(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(a.vacancy.title, style: Soft.style(size: 15, weight: 800), maxLines: 2, overflow: TextOverflow.ellipsis),
-                                        const SizedBox(height: 2),
-                                        Text('${a.vacancy.company.name} · ${fmtDate(a.createdAt)}', style: Soft.style(size: 12, weight: 600, color: Soft.muted)),
-                                      ],
-                                    ),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(a.vacancy.title, style: Soft.style(size: 15, weight: 800), maxLines: 2, overflow: TextOverflow.ellipsis),
+                                            const SizedBox(height: 2),
+                                            Text('${a.vacancy.company.name} · ${fmtDate(a.createdAt)}', style: Soft.style(size: 12, weight: 600, color: Soft.muted)),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      _StatusChip(status: a.status, label: a.statusLabel),
+                                    ],
                                   ),
-                                  const SizedBox(width: 10),
-                                  _StatusChip(status: a.status, label: a.statusLabel),
+                                  // Сообщение работодателя, присланное вместе со статусом
+                                  if (a.employerNote != null) ...[
+                                    const SizedBox(height: 10),
+                                    SoftInset(
+                                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                                      radius: 12,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('${a.vacancy.company.name}${a.statusChangedAt != null ? ' · ${fmtDate(a.statusChangedAt)}' : ''}', style: Soft.style(size: 11, weight: 700, color: Soft.muted)),
+                                          const SizedBox(height: 3),
+                                          Text(a.employerNote!, style: Soft.style(size: 13, weight: 600, height: 1.4)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),

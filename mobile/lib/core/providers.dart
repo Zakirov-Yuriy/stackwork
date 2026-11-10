@@ -2,9 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/models.dart';
 import 'api.dart';
+import 'push.dart';
 
 /// Один клиент на приложение; init() вызывается в main() до runApp
 final apiProvider = Provider<ApiClient>((ref) => throw UnimplementedError('apiProvider задаётся в main через overrideWithValue'));
+
+/// Push-уведомления; задаётся в main. В тестах подменяется заглушкой без Firebase
+final pushProvider = Provider<PushService>((ref) => throw UnimplementedError('pushProvider задаётся в main через overrideWithValue'));
 
 /// Текущий пользователь: null = гость. Меняется при входе, выходе, удалении аккаунта.
 class SessionNotifier extends Notifier<User?> {
@@ -16,6 +20,8 @@ class SessionNotifier extends Notifier<User?> {
     if (!api.isAuthorized) return;
     try {
       state = (await api.me()).user;
+      // Токен устройства обновляем при каждом старте: он мог смениться, пока приложение не открывали
+      await ref.read(pushProvider).enableForCurrentUser();
     } on ApiException catch (e) {
       if (e.isAuth) await api.logout();
     }
@@ -25,10 +31,12 @@ class SessionNotifier extends Notifier<User?> {
   /// и перезагружаются сами, когда меняется state
   Future<void> login(String email, String password) async {
     state = await ref.read(apiProvider).login(email, password);
+    await ref.read(pushProvider).enableForCurrentUser();
   }
 
   Future<void> register({required String name, required String email, required String password}) async {
     state = await ref.read(apiProvider).register(name: name, email: email, password: password);
+    await ref.read(pushProvider).enableForCurrentUser();
   }
 
   Future<void> refresh() async {
@@ -37,12 +45,15 @@ class SessionNotifier extends Notifier<User?> {
   }
 
   Future<void> logout() async {
+    await ref.read(pushProvider).disableForCurrentUser();
     await ref.read(apiProvider).logout();
     state = null;
   }
 
   Future<void> deleteAccount(String password) async {
+    // Токены устройств удаляются на сервере вместе с аккаунтом, здесь только сбрасываем токен Firebase
     await ref.read(apiProvider).deleteAccount(password);
+    await ref.read(pushProvider).disableForCurrentUser();
     state = null;
   }
 }

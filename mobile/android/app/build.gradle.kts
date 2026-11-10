@@ -7,6 +7,14 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Firebase Cloud Messaging (push): плагин google-services читает android/app/google-services.json
+// из консоли Firebase. Без файла плагин не подключаем, приложение собирается и работает без push.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+} else {
+    logger.lifecycle("Stackwork: android/app/google-services.json не найден, push-уведомления отключены")
+}
+
 // Ключ подписи для Google Play: android/key.properties (в .gitignore), см. README приложения.
 // Без файла собирается отладочной подписью, чтобы `flutter run` и `flutter build apk --debug` работали.
 val keystoreProperties = Properties()

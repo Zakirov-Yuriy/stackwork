@@ -13,7 +13,8 @@
     "loggedInAs": "You are logged in as {role, select, EMPLOYER {an employer} other {an administrator}}.",
     "goToCabinet": "Go to dashboard",
     "emptyTitle": "No applications yet",
-    "emptyText": "Find a job by tech stack and salary and apply: employers’ replies will show up here."
+    "emptyText": "Find a job by tech stack and salary and apply: employers’ replies will show up here.",
+    "employerNote": "Message from {company}"
   },
   "saved": {
     "title": "Saved",

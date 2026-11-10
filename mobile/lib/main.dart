@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/api.dart';
 import 'core/providers.dart';
+import 'core/push.dart';
 import 'core/theme.dart';
 import 'features/company/company_screen.dart';
 import 'features/profile/auth_screens.dart';
@@ -30,10 +32,14 @@ Future<void> main() async {
   ));
   final api = ApiClient();
   await api.init();
-  runApp(ProviderScope(overrides: [apiProvider.overrideWithValue(api)], child: const StackworkApp()));
+  // Firebase подключается, если есть android/app/google-services.json; иначе push просто выключены
+  final push = PushService(api);
+  await push.init();
+  runApp(ProviderScope(overrides: [apiProvider.overrideWithValue(api), pushProvider.overrideWithValue(push)], child: const StackworkApp()));
 }
 
 final _rootKey = GlobalKey<NavigatorState>();
+final _messengerKey = GlobalKey<ScaffoldMessengerState>();
 
 /// Маршруты повторяют адреса сайта, чтобы ссылки stackworkjobs.vercel.app открывались в приложении
 GoRouter _buildRouter(ApiClient api) {
@@ -113,16 +119,44 @@ class StackworkApp extends ConsumerStatefulWidget {
 
 class _StackworkAppState extends ConsumerState<StackworkApp> {
   late final GoRouter _router = _buildRouter(ref.read(apiProvider));
+  StreamSubscription<PushTarget>? _openedSub;
+  StreamSubscription<ForegroundPush>? _foregroundSub;
 
   @override
   void initState() {
     super.initState();
     // Токен уже прочитан из защищённого хранилища; проверяем его на сервере в фоне
     WidgetsBinding.instance.addPostFrameCallback((_) => ref.read(sessionProvider.notifier).restore());
+    final push = ref.read(pushProvider);
+    // Нажатие на уведомление ведёт на нужный экран; пришедшее при открытом приложении показываем баннером
+    _openedSub = push.opened.listen((t) => _router.go(t.route));
+    _foregroundSub = push.foreground.listen((m) {
+      ref.invalidate(applicationsProvider);
+      ref.invalidate(profileProvider);
+      _messengerKey.currentState
+        ?..clearSnackBars()
+        ..showSnackBar(SnackBar(
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.fromLTRB(14, 0, 14, 96),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          duration: const Duration(seconds: 6),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(m.title, style: Soft.style(size: 14, weight: 800, color: Colors.white)),
+              if (m.body.isNotEmpty) Text(m.body, style: Soft.style(size: 13, weight: 600, color: Colors.white70), maxLines: 3, overflow: TextOverflow.ellipsis),
+            ],
+          ),
+          action: m.target != null ? SnackBarAction(label: 'Открыть', textColor: Soft.blue2, onPressed: () => _router.go(m.target!.route)) : null,
+        ));
+    });
   }
 
   @override
   void dispose() {
+    _openedSub?.cancel();
+    _foregroundSub?.cancel();
     _router.dispose();
     super.dispose();
   }
@@ -133,6 +167,7 @@ class _StackworkAppState extends ConsumerState<StackworkApp> {
       title: 'Stackwork',
       debugShowCheckedModeBanner: false,
       theme: Soft.theme(),
+      scaffoldMessengerKey: _messengerKey,
       routerConfig: _router,
       locale: const Locale('ru'),
       supportedLocales: const [Locale('ru'), Locale('en')],

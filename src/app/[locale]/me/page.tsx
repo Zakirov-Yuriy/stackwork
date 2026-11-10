@@ -99,6 +99,14 @@ export default async function MePage(props: PageProps<"/[locale]/me">) {
                 </div>
                 <span className={STATUS_CLS[a.status] ?? "chip-flat"}>{L.APPLICATION_STATUS_LABEL[a.status]}</span>
                 <span className="text-[13px] text-[color:var(--soft-muted)]">{L.formatDate(a.createdAt)}</span>
+                {a.employerNote ? (
+                  <p className="m-0 w-full whitespace-pre-line rounded-xl bg-[color:var(--soft-bg-raised)] px-4 py-3 text-sm leading-relaxed">
+                    <span className="font-bold">{t("applications.employerNote", { company: a.vacancy.company.name })}</span>
+                    {a.statusChangedAt ? <span className="text-[color:var(--soft-muted)]"> · {L.formatDate(a.statusChangedAt)}</span> : null}
+                    <br />
+                    {a.employerNote}
+                  </p>
+                ) : null}
               </article>
             ))}
           </div>

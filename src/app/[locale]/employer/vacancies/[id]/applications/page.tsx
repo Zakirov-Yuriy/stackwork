@@ -92,27 +92,49 @@ export default async function ApplicationsPage(props: PageProps<"/[locale]/emplo
                     ) : null}
                   </div>
                   {a.coverLetter ? <p className="m-0 whitespace-pre-line text-[15px] leading-relaxed text-[color:var(--soft-text)]">{a.coverLetter}</p> : null}
-                  <form action={setApplicationStatusAction} className="flex flex-wrap items-center gap-2 pt-1">
+                  {a.employerNote ? (
+                    <p className="m-0 rounded-xl bg-[color:var(--soft-bg-raised)] px-4 py-3 text-sm leading-relaxed text-[color:var(--soft-muted)]">
+                      <span className="font-bold text-[color:var(--soft-text)]">{t("applications.noteSent")}</span>{" "}
+                      {a.statusChangedAt ? <span>({L.formatDate(a.statusChangedAt)})</span> : null}
+                      <br />
+                      <span className="whitespace-pre-line">{a.employerNote}</span>
+                    </p>
+                  ) : null}
+                  <form action={setApplicationStatusAction} className="flex flex-col gap-2 pt-1">
                     <input type="hidden" name="id" value={a.id} />
                     <input type="hidden" name="vacancyId" value={v.id} />
-                    {NEXT_STATUSES.filter((s) => s !== status).map((s) => (
-                      <button
-                        key={s}
-                        type="submit"
-                        name="status"
-                        value={s}
-                        className={`neu-btn-sm ${s === "REJECTED" ? "text-[color:var(--soft-muted)]" : ""}`}
-                        style={{ minHeight: 40, fontSize: 13 }}
-                      >
-                        {s === "VIEWED"
-                          ? t("applications.actions.viewed")
-                          : s === "INTERVIEW"
-                            ? t("applications.actions.interview")
-                            : s === "OFFER"
-                              ? t("applications.actions.offer")
-                              : t("applications.actions.reject")}
+                    <textarea
+                      name="note"
+                      rows={2}
+                      maxLength={1000}
+                      placeholder={t("applications.notePlaceholder")}
+                      className="neu-inset w-full resize-y rounded-xl px-4 py-3 text-sm"
+                      aria-label={t("applications.noteLabel")}
+                    />
+                    <div className="flex flex-wrap items-center gap-2">
+                      {NEXT_STATUSES.filter((s) => s !== status).map((s) => (
+                        <button
+                          key={s}
+                          type="submit"
+                          name="status"
+                          value={s}
+                          className={`neu-btn-sm ${s === "REJECTED" ? "text-[color:var(--soft-muted)]" : ""}`}
+                          style={{ minHeight: 40, fontSize: 13 }}
+                        >
+                          {s === "VIEWED"
+                            ? t("applications.actions.viewed")
+                            : s === "INTERVIEW"
+                              ? t("applications.actions.interview")
+                              : s === "OFFER"
+                                ? t("applications.actions.offer")
+                                : t("applications.actions.reject")}
+                        </button>
+                      ))}
+                      <button type="submit" name="status" value={status} className="neu-btn-sm ml-auto text-[color:var(--soft-blue)]" style={{ minHeight: 40, fontSize: 13 }}>
+                        {t("applications.actions.message")}
                       </button>
-                    ))}
+                    </div>
+                    <p className="m-0 text-xs text-[color:var(--soft-muted)]">{t("applications.noteHint")}</p>
                   </form>
                 </article>
               );

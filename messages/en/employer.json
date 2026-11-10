@@ -173,8 +173,13 @@
       "viewed": "Viewed",
       "interview": "Invite to interview",
       "offer": "Offer",
-      "reject": "Reject"
-    }
+      "reject": "Reject",
+      "message": "Send message"
+    },
+    "noteLabel": "Message to the candidate",
+    "notePlaceholder": "Optional message to the candidate: when to call, what to send",
+    "noteHint": "The message is sent to the candidate by email and as a push notification in the app together with the new status. To send a message without changing the status, click “Send message”.",
+    "noteSent": "You wrote:"
   },
   "errors": {
     "titleRequired": "Enter a job title",

@@ -14,6 +14,10 @@ import 'package:stackwork_app/core/api.dart';
 import 'package:stackwork_app/core/providers.dart';
 import 'package:stackwork_app/main.dart';
 
+import 'package:stackwork_app/core/push.dart';
+
+import 'support/fakes.dart';
+
 /// Подменяет сеть: отдаёт JSON из test/fixtures, снятый с реального API v1
 class _FakeAdapter implements HttpClientAdapter {
   final requests = <String>[];
@@ -57,6 +61,8 @@ class _FakeAdapter implements HttpClientAdapter {
       } else {
         json = '{"user":{"id":"u1","email":"anna@example.com","name":"Тест","role":"CANDIDATE","emailVerified":true},"counts":{"saved":1,"applications":2}}';
       }
+    } else if (path == '/me/devices') {
+      json = '{"ok":true,"enabled":true}';
     } else if (path == '/me/saved') {
       json = '{"items":[]}';
     } else if (path == '/me/applications') {
@@ -72,33 +78,17 @@ class _FakeAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
-class _MemoryStorage extends FlutterSecureStoragePlatform {
-  final _data = <String, String>{};
-  @override
-  Future<bool> containsKey({required String key, required Map<String, String> options}) async => _data.containsKey(key);
-  @override
-  Future<void> delete({required String key, required Map<String, String> options}) async => _data.remove(key);
-  @override
-  Future<void> deleteAll({required Map<String, String> options}) async => _data.clear();
-  @override
-  Future<String?> read({required String key, required Map<String, String> options}) async => _data[key];
-  @override
-  Future<Map<String, String>> readAll({required Map<String, String> options}) async => Map.of(_data);
-  @override
-  Future<void> write({required String key, required String value, required Map<String, String> options}) async => _data[key] = value;
-}
-
-Future<(ApiClient, _FakeAdapter)> _client() async {
-  FlutterSecureStoragePlatform.instance = _MemoryStorage();
+Future<(ApiClient, _FakeAdapter, FakePushService)> _client() async {
+  FlutterSecureStoragePlatform.instance = MemoryStorage();
   final adapter = _FakeAdapter();
   final dio = Dio(BaseOptions(baseUrl: '$apiBase/api/v1'))..httpClientAdapter = adapter;
   final api = ApiClient(dio: dio, storage: const FlutterSecureStorage());
   await api.init();
-  return (api, adapter);
+  return (api, adapter, FakePushService(api));
 }
 
-Future<void> _pump(WidgetTester tester, ApiClient api) async {
-  await tester.pumpWidget(ProviderScope(overrides: [apiProvider.overrideWithValue(api)], child: const StackworkApp()));
+Future<void> _pump(WidgetTester tester, ApiClient api, FakePushService push) async {
+  await tester.pumpWidget(ProviderScope(overrides: [apiProvider.overrideWithValue(api), pushProvider.overrideWithValue(push)], child: const StackworkApp()));
   await tester.pumpAndSettle(const Duration(milliseconds: 200));
 }
 
@@ -110,8 +100,8 @@ void main() {
     tester.view.physicalSize = const Size(1080, 2340);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    final (api, adapter) = await _client();
-    await _pump(tester, api);
+    final (api, adapter, push) = await _client();
+    await _pump(tester, api, push);
 
     expect(find.text('Вакансии'), findsWidgets);
     expect(adapter.requests.where((r) => r.startsWith('GET /vacancies?')).length, 1);
@@ -141,8 +131,8 @@ void main() {
     tester.view.physicalSize = const Size(1080, 2340);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    final (api, adapter) = await _client();
-    await _pump(tester, api);
+    final (api, adapter, push) = await _client();
+    await _pump(tester, api, push);
 
     await tester.tap(find.text('Зарплаты').last);
     await tester.pumpAndSettle(const Duration(milliseconds: 300));
@@ -157,8 +147,8 @@ void main() {
     tester.view.physicalSize = const Size(1080, 2340);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    final (api, adapter) = await _client();
-    await _pump(tester, api);
+    final (api, adapter, push) = await _client();
+    await _pump(tester, api, push);
 
     await tester.tap(find.text('Профиль').last);
     await tester.pumpAndSettle();
@@ -179,6 +169,8 @@ void main() {
     await tester.pumpAndSettle(const Duration(milliseconds: 300));
     expect(api.isAuthorized, isTrue);
     expect(adapter.requests.contains('POST /auth/login'), isTrue);
+    // после входа приложение включает push для этого пользователя
+    expect(push.enabledFor, [true]);
     expect(find.text('Тест'), findsOneWidget);
     expect(find.text('Откликов'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('Удалить аккаунт'), 200, scrollable: find.byType(Scrollable).first);
@@ -195,8 +187,8 @@ void main() {
     tester.view.physicalSize = const Size(1080, 2340);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    final (api, adapter) = await _client();
-    await _pump(tester, api);
+    final (api, adapter, push) = await _client();
+    await _pump(tester, api, push);
     final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
 
     router.go('/jobs/python/remote');
@@ -207,5 +199,24 @@ void main() {
     router.go('/en/vacancies/testovaya-vakansiya-mvy8klyv');
     await tester.pumpAndSettle(const Duration(milliseconds: 300));
     expect(router.state.uri.path, '/vacancies/testovaya-vakansiya-mvy8klyv');
+  });
+
+  testWidgets('push: нажатие ведёт в профиль, уведомление при открытом приложении показывает баннер', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2340);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final (api, adapter, push) = await _client();
+    await _pump(tester, api, push);
+
+    push.openedController.add(const PushTarget('/profile'));
+    await tester.pumpAndSettle();
+    expect(find.text('Войдите, чтобы откликаться и сохранять вакансии'), findsOneWidget);
+
+    push.foregroundController.add(const ForegroundPush(title: 'Квант Банк: Собеседование', body: 'Созвон в четверг в 15:00', target: PushTarget('/profile')));
+    await tester.pumpAndSettle();
+    expect(find.text('Квант Банк: Собеседование'), findsOneWidget);
+    expect(find.text('Созвон в четверг в 15:00'), findsOneWidget);
+    expect(find.text('Открыть'), findsOneWidget);
+    expect(adapter.requests.isNotEmpty, isTrue);
   });
 }

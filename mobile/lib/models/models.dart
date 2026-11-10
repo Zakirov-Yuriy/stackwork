@@ -334,18 +334,23 @@ class Profile {
 }
 
 class Application {
-  const Application({required this.id, required this.status, required this.statusLabel, required this.createdAt, required this.vacancy});
+  const Application({required this.id, required this.status, required this.statusLabel, required this.createdAt, required this.vacancy, this.employerNote, this.statusChangedAt});
   final String id;
   final String status;
   final String statusLabel;
   final DateTime? createdAt;
   final Vacancy vacancy;
+  /// Сообщение работодателя при последней смене статуса
+  final String? employerNote;
+  final DateTime? statusChangedAt;
   factory Application.fromJson(Map<String, dynamic> j) => Application(
         id: _s(j['id']),
         status: _s(j['status'], 'NEW'),
         statusLabel: _s(j['statusLabel'], 'Новый'),
         createdAt: j['createdAt'] is String ? DateTime.tryParse(j['createdAt'] as String) : null,
         vacancy: Vacancy.fromJson(_m(j['vacancy'])),
+        employerNote: (j['employerNote'] as String?)?.trim().isNotEmpty == true ? (j['employerNote'] as String).trim() : null,
+        statusChangedAt: j['statusChangedAt'] is String ? DateTime.tryParse(j['statusChangedAt'] as String) : null,
       );
 }
 

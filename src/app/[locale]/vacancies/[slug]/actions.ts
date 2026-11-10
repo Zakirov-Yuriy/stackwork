@@ -9,6 +9,7 @@ import { getCurrentUser } from "@/lib/session";
 import { rateLimited } from "@/lib/rate-limit";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { sendMailSafe, siteUrl, newApplicationMail } from "@/lib/mail";
+import { sendPushSafe } from "@/lib/push";
 
 export type ApplyState = { error?: string; success?: string } | undefined;
 
@@ -23,7 +24,7 @@ export async function applyAction(_prev: ApplyState, formData: FormData): Promis
 
   const vacancy = await db.vacancy.findFirst({
     where: { slug, status: "PUBLISHED" },
-    select: { id: true, title: true, acceptsGithubLink: true, company: { select: { members: { select: { email: true }, where: { role: "EMPLOYER" } } } } },
+    select: { id: true, title: true, acceptsGithubLink: true, company: { select: { members: { select: { id: true, email: true }, where: { role: "EMPLOYER" } } } } },
   });
   if (!vacancy) return { error: t("errors.unpublished") };
 
@@ -56,6 +57,10 @@ export async function applyAction(_prev: ApplyState, formData: FormData): Promis
   for (const m of vacancy.company.members) {
     sendMailSafe(newApplicationMail(m.email, { vacancyTitle: vacancy.title, candidateName: user.name ?? user.email, url }, locale));
   }
+  sendPushSafe(
+    vacancy.company.members.map((m) => m.id),
+    { title: "Новый отклик", body: `${user.name ?? user.email} откликнулся на «${vacancy.title}»`, data: { type: "new_application", vacancySlug: slug, url } },
+  );
 
   revalidatePath(`/vacancies/${slug}`);
   revalidatePath("/me");

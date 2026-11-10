@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { rateLimited } from "@/lib/rate-limit";
 import { newApplicationMail, sendMailSafe, siteUrl } from "@/lib/mail";
 import { apiUser, jsonError, readJson, str } from "@/lib/api";
+import { sendPushSafe } from "@/lib/push";
 
 /**
  * POST /api/v1/vacancies/:slug/apply {coverLetter?, githubUrl?, resumeUrl?} → {id}.
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest, ctx: RouteContext<"/api/v1/vaca
   const { slug } = await ctx.params;
   const vacancy = await db.vacancy.findFirst({
     where: { slug, status: "PUBLISHED" },
-    select: { id: true, title: true, source: true, applyUrl: true, company: { select: { members: { select: { email: true }, where: { role: "EMPLOYER" } } } } },
+    select: { id: true, slug: true, title: true, source: true, applyUrl: true, company: { select: { members: { select: { id: true, email: true }, where: { role: "EMPLOYER" } } } } },
   });
   if (!vacancy) return jsonError(404, "Вакансия не опубликована");
   if (vacancy.source !== "MANUAL") return jsonError(409, "Отклик на эту вакансию принимается на сайте работодателя", );
@@ -35,5 +36,10 @@ export async function POST(request: NextRequest, ctx: RouteContext<"/api/v1/vaca
   const created = await db.application.create({ data: { vacancyId: vacancy.id, candidateId: user.id, coverLetter, githubUrl, resumeUrl }, select: { id: true } });
   const url = siteUrl(`/employer/vacancies/${vacancy.id}/applications`);
   for (const m of vacancy.company.members) sendMailSafe(newApplicationMail(m.email, { vacancyTitle: vacancy.title, candidateName: fresh.name ?? fresh.email, url }));
+  // Работодателям с приложением ещё и push (кабинет работодателя пока на сайте, уведомление ведёт туда)
+  sendPushSafe(
+    vacancy.company.members.map((m) => m.id),
+    { title: "Новый отклик", body: `${fresh.name ?? fresh.email} откликнулся на «${vacancy.title}»`, data: { type: "new_application", vacancySlug: vacancy.slug, url } },
+  );
   return Response.json({ id: created.id }, { status: 201 });
 }

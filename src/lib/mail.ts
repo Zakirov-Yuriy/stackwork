@@ -58,7 +58,7 @@ type MailText = {
   verify: { subject: string; title: string; p1: string; p2: string; button: string; footer: string };
   reset: { subject: string; title: string; p1: string; p2: string; button: string; footer: string };
   newApplication: { subject: (v: string) => string; title: string; p1: (name: string, v: string) => string; p2: string; button: string };
-  status: { subject: (c: string, st: string, v: string) => string; title: string; p1: (c: string, v: string, st: string) => string; button: string };
+  status: { subject: (c: string, st: string, v: string) => string; title: string; p1: (c: string, v: string, st: string) => string; note: (c: string) => string; button: string };
   moderation: {
     subjectOk: (v: string) => string;
     subjectNo: (v: string) => string;
@@ -105,6 +105,7 @@ const TEXT: Record<Locale, MailText> = {
       subject: (c, st, v) => `${c}: ${st} по вакансии «${v}»`,
       title: "Статус отклика изменился",
       p1: (c, v, st) => `${c} обновил статус вашего отклика на «${v}»: ${st}.`,
+      note: (c) => `Сообщение от ${c}:`,
       button: "Открыть вакансию",
     },
     moderation: {
@@ -150,6 +151,7 @@ const TEXT: Record<Locale, MailText> = {
       subject: (c, st, v) => `${c}: ${st} for “${v}”`,
       title: "Your application status changed",
       p1: (c, v, st) => `${c} updated the status of your application for “${v}”: ${st}.`,
+      note: (c) => `Message from ${c}:`,
       button: "Open the job",
     },
     moderation: {
@@ -214,14 +216,17 @@ export function newApplicationMail(to: string, opts: { vacancyTitle: string; can
 
 export function applicationStatusMail(
   to: string,
-  opts: { vacancyTitle: string; companyName: string; statusLabel: string; url: string },
+  opts: { vacancyTitle: string; companyName: string; statusLabel: string; url: string; note?: string | null },
   locale: Locale = "ru",
 ): Mail {
   const T = texts(locale).status;
+  const paragraphs = [T.p1(opts.companyName, opts.vacancyTitle, opts.statusLabel)];
+  // Сообщение работодателя: отдельным абзацем, как написано, без разметки
+  if (opts.note) paragraphs.push(T.note(opts.companyName), opts.note);
   return {
     to,
     subject: T.subject(opts.companyName, opts.statusLabel, opts.vacancyTitle),
-    ...renderMail({ title: T.title, paragraphs: [T.p1(opts.companyName, opts.vacancyTitle, opts.statusLabel)], button: { label: T.button, url: opts.url } }, locale),
+    ...renderMail({ title: T.title, paragraphs, button: { label: T.button, url: opts.url } }, locale),
   };
 }
 
