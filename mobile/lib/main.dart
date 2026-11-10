@@ -216,8 +216,8 @@ class _FeedEntryState extends ConsumerState<_FeedEntry> {
   Widget build(BuildContext context) => const FeedScreen();
 }
 
-/// Нижняя навигация: парящая полупрозрачная плашка со скруглёнными углами и размытием,
-/// лента прокручивается под ней (extendBody), активная вкладка подсвечена синим знаком
+/// Нижняя навигация: парящая полупрозрачная «таблетка» с размытием, только иконки без подписей
+/// (как в приложении Lidle), активная иконка залитая и синяя. Лента прокручивается под плашкой (extendBody)
 class _Shell extends StatelessWidget {
   const _Shell({required this.shell});
   final StatefulNavigationShell shell;
@@ -236,36 +236,34 @@ class _Shell extends StatelessWidget {
       extendBody: true,
       body: shell,
       bottomNavigationBar: Padding(
-        padding: EdgeInsets.fromLTRB(14, 0, 14, bottom > 0 ? bottom + 6 : 12),
+        padding: EdgeInsets.fromLTRB(18, 0, 18, bottom > 0 ? bottom + 6 : 14),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(999),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-            child: DecoratedBox(
+            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            child: Container(
+              height: 64,
               decoration: BoxDecoration(
-                color: Soft.bg.withValues(alpha: 0.72),
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.65), width: 1),
+                color: Soft.bg.withValues(alpha: 0.74),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.7), width: 1),
                 boxShadow: [
-                  BoxShadow(color: Soft.dark.withValues(alpha: 0.55), blurRadius: 24, offset: const Offset(0, 10)),
-                  BoxShadow(color: Colors.white.withValues(alpha: 0.7), blurRadius: 12, offset: const Offset(0, -4)),
+                  BoxShadow(color: Soft.dark.withValues(alpha: 0.6), blurRadius: 26, offset: const Offset(0, 12)),
+                  BoxShadow(color: Colors.white.withValues(alpha: 0.75), blurRadius: 12, offset: const Offset(0, -4)),
                 ],
               ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-                child: Row(
-                  children: [
-                    for (var i = 0; i < _tabs.length; i++)
-                      Expanded(
-                        child: _Tab(
-                          icon: shell.currentIndex == i ? _tabs[i].$2 : _tabs[i].$1,
-                          label: _tabs[i].$3,
-                          active: shell.currentIndex == i,
-                          onTap: () => shell.goBranch(i, initialLocation: i == shell.currentIndex),
-                        ),
+              child: Row(
+                children: [
+                  for (var i = 0; i < _tabs.length; i++)
+                    Expanded(
+                      child: _Tab(
+                        icon: shell.currentIndex == i ? _tabs[i].$2 : _tabs[i].$1,
+                        label: _tabs[i].$3,
+                        active: shell.currentIndex == i,
+                        onTap: () => shell.goBranch(i, initialLocation: i == shell.currentIndex),
                       ),
-                  ],
-                ),
+                    ),
+                ],
               ),
             ),
           ),
@@ -284,33 +282,24 @@ class _Tab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Подписи нет, поэтому название вкладки доступно по долгому нажатию и для программ чтения с экрана
     return Semantics(
       button: true,
       selected: active,
       label: label,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(22),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                curve: Curves.easeOut,
-                width: 48,
-                height: 32,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: active ? Soft.primaryGradient : null,
-                  boxShadow: active ? [BoxShadow(color: Soft.blue.withValues(alpha: 0.35), blurRadius: 12, offset: const Offset(0, 4))] : null,
-                ),
-                child: Icon(icon, size: 21, color: active ? Colors.white : Soft.muted),
-              ),
-              const SizedBox(height: 4),
-              Text(label, style: Soft.style(size: 11, weight: active ? 800 : 700, color: active ? Soft.text : Soft.muted), maxLines: 1, overflow: TextOverflow.ellipsis),
-            ],
+      child: Tooltip(
+        message: label,
+        preferBelow: false,
+        child: InkResponse(
+          onTap: onTap,
+          radius: 30,
+          highlightShape: BoxShape.circle,
+          child: SizedBox.expand(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 160),
+              switchInCurve: Curves.easeOut,
+              child: Icon(icon, key: ValueKey(active), size: 27, color: active ? Soft.blue : Soft.text.withValues(alpha: 0.78)),
+            ),
           ),
         ),
       ),

@@ -87,6 +87,10 @@ Future<(ApiClient, _FakeAdapter, FakePushService)> _client() async {
   return (api, adapter, FakePushService(api));
 }
 
+/// Вкладка нижнего меню (иконки без подписей, название в подсказке); ищем внутри размытой плашки,
+/// чтобы не спутать с кнопками в шапке экранов
+Finder _tab(String label) => find.descendant(of: find.byType(BackdropFilter), matching: find.byTooltip(label)).first;
+
 Future<void> _pump(WidgetTester tester, ApiClient api, FakePushService push) async {
   await tester.pumpWidget(ProviderScope(overrides: [apiProvider.overrideWithValue(api), pushProvider.overrideWithValue(push)], child: const StackworkApp()));
   await tester.pumpAndSettle(const Duration(milliseconds: 200));
@@ -103,7 +107,7 @@ void main() {
     final (api, adapter, push) = await _client();
     await _pump(tester, api, push);
 
-    expect(find.text('Вакансии'), findsWidgets);
+    expect(_tab('Вакансии'), findsOneWidget);
     expect(adapter.requests.where((r) => r.startsWith('GET /vacancies?')).length, 1);
     final first = jsonDecode(File('test/fixtures/vacancies.json').readAsStringSync())['items'][0];
     expect(find.text(first['title'] as String), findsOneWidget);
@@ -134,7 +138,7 @@ void main() {
     final (api, adapter, push) = await _client();
     await _pump(tester, api, push);
 
-    await tester.tap(find.text('Зарплаты').last);
+    await tester.tap(_tab('Зарплаты'));
     await tester.pumpAndSettle(const Duration(milliseconds: 300));
     expect(adapter.requests.contains('GET /salaries'), isTrue);
     await tester.tap(find.text('Python').first);
@@ -150,7 +154,7 @@ void main() {
     final (api, adapter, push) = await _client();
     await _pump(tester, api, push);
 
-    await tester.tap(find.text('Профиль').last);
+    await tester.tap(_tab('Профиль'));
     await tester.pumpAndSettle();
     expect(find.text('Войдите, чтобы откликаться и сохранять вакансии'), findsOneWidget);
 
