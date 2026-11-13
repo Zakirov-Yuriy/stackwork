@@ -128,12 +128,50 @@ function buildWhere(f: VacancyFilters, ftsIds: string[] | null): Prisma.VacancyW
   return where;
 }
 
-export const vacancyCardInclude = {
+/**
+ * Поля карточки вакансии: все скаляры, кроме тяжёлых текстов (descriptionHtml, разделы ручной вакансии).
+ * Раньше здесь был include без select, и каждая страница списка тянула из базы 20 полных описаний
+ * (сотни килобайт на запрос); на бесплатном тарифе Neon это съедало месячный лимит трафика за две недели.
+ */
+export const vacancyCardSelect = {
+  id: true,
+  slug: true,
+  title: true,
+  source: true,
+  externalId: true,
+  externalUrl: true,
+  applyUrl: true,
+  language: true,
+  salaryPeriod: true,
+  locationNote: true,
+  importedAt: true,
+  lastSeenAt: true,
+  expiresAt: true,
+  companyId: true,
+  authorId: true,
+  direction: true,
+  grade: true,
+  experience: true,
+  workFormat: true,
+  employment: true,
+  city: true,
+  salaryFrom: true,
+  salaryTo: true,
+  currency: true,
+  salaryType: true,
+  acceptsGithubLink: true,
+  showCompanyName: true,
+  status: true,
+  moderationComment: true,
+  publishedAt: true,
+  views: true,
+  createdAt: true,
+  updatedAt: true,
   company: { select: { slug: true, name: true, initials: true, logoUrl: true } },
   skills: { orderBy: { order: "asc" }, include: { skill: true } },
-} satisfies Prisma.VacancyInclude;
+} satisfies Prisma.VacancySelect;
 
-export type VacancyCard = Prisma.VacancyGetPayload<{ include: typeof vacancyCardInclude }>;
+export type VacancyCard = Prisma.VacancyGetPayload<{ select: typeof vacancyCardSelect }>;
 
 export async function searchVacancies(f: VacancyFilters) {
   const ftsIds = f.q ? await fullTextIds(f.q) : null;
@@ -147,7 +185,7 @@ export async function searchVacancies(f: VacancyFilters) {
   const [items, total] = await Promise.all([
     db.vacancy.findMany({
       where,
-      include: vacancyCardInclude,
+      select: vacancyCardSelect,
       orderBy,
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
@@ -210,7 +248,7 @@ export async function similarVacancies(vacancyId: string, skillIds: string[], li
       id: { not: vacancyId },
       ...(skillIds.length ? { skills: { some: { skillId: { in: skillIds } } } } : {}),
     },
-    include: vacancyCardInclude,
+    select: vacancyCardSelect,
     orderBy: { publishedAt: "desc" },
     take: limit,
   });

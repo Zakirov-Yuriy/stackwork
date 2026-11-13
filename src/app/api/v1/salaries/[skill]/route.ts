@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { vacancyCardInclude } from "@/lib/vacancies";
+import { vacancyCardSelect } from "@/lib/vacancies";
 import { getSkill, getSalaries } from "@/lib/landing";
 import { jsonError, toVacancyDto } from "@/lib/api";
 
@@ -10,7 +10,7 @@ export async function GET(_request: Request, ctx: RouteContext<"/api/v1/salaries
   if (!skill) return jsonError(404, "Технология не найдена");
   const data = await getSalaries(skill);
   if (!data) return jsonError(404, "Недостаточно вакансий с зарплатой");
-  const top = data.topPaid.length ? await db.vacancy.findMany({ where: { slug: { in: data.topPaid }, status: "PUBLISHED" }, include: vacancyCardInclude }) : [];
+  const top = data.topPaid.length ? await db.vacancy.findMany({ where: { slug: { in: data.topPaid }, status: "PUBLISHED" }, select: vacancyCardSelect }) : [];
   const order = new Map(data.topPaid.map((s, i) => [s, i]));
   top.sort((a, b) => (order.get(a.slug) ?? 0) - (order.get(b.slug) ?? 0));
   return Response.json(

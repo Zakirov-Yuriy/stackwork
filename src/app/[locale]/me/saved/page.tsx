@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/guards";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { VacancyCard } from "@/components/vacancy-card";
-import { vacancyCardInclude } from "@/lib/vacancies";
+import { vacancyCardSelect } from "@/lib/vacancies";
 import { MeTabs } from "../me-tabs";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -20,7 +20,7 @@ export default async function SavedPage() {
     db.savedVacancy.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
-      include: { vacancy: { include: vacancyCardInclude } },
+      include: { vacancy: { select: vacancyCardSelect } },
     }),
     getTranslations("me"),
     getTranslations("common"),

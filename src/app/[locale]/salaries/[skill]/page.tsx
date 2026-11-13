@@ -9,7 +9,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { VacancyCard } from "@/components/vacancy-card";
 import { makeLabels, CURRENCY_SIGN } from "@/lib/labels";
-import { vacancyCardInclude } from "@/lib/vacancies";
+import { vacancyCardSelect } from "@/lib/vacancies";
 import { savedIdsFor } from "@/lib/saved";
 import { getCurrentUser } from "@/lib/session";
 import { getSkill, getSalaries, type SalaryStat } from "@/lib/landing";
@@ -81,7 +81,7 @@ export default async function SkillSalariesPage(props: PageProps<"/[locale]/sala
   const max = Math.max(s.p75, ...data.byGrade.map((g) => g.stat?.p75 ?? 0), data.byFormat.remote?.p75 ?? 0, data.byFormat.office?.p75 ?? 0) * 1.1;
   const trendMax = Math.max(1, ...data.trend.map((m) => m.median ?? 0));
   const monthShort = new Intl.DateTimeFormat(INTL[locale] ?? "ru-RU", { month: "short" });
-  const topPaid = data.topPaid.length ? await db.vacancy.findMany({ where: { slug: { in: data.topPaid }, status: "PUBLISHED" }, include: vacancyCardInclude }) : [];
+  const topPaid = data.topPaid.length ? await db.vacancy.findMany({ where: { slug: { in: data.topPaid }, status: "PUBLISHED" }, select: vacancyCardSelect }) : [];
   const order = new Map(data.topPaid.map((sl, i) => [sl, i]));
   topPaid.sort((a, b) => (order.get(a.slug) ?? 0) - (order.get(b.slug) ?? 0));
   const saved = await savedIdsFor(user?.id, topPaid.map((v) => v.id));

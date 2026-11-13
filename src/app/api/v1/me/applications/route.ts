@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { vacancyCardInclude } from "@/lib/vacancies";
+import { vacancyCardSelect } from "@/lib/vacancies";
 import { APPLICATION_STATUS_LABEL } from "@/lib/labels";
 import { apiUser, jsonError, toVacancyDto } from "@/lib/api";
 
@@ -8,7 +8,7 @@ import { apiUser, jsonError, toVacancyDto } from "@/lib/api";
 export async function GET(request: NextRequest) {
   const user = await apiUser(request);
   if (!user) return jsonError(401, "Нужно войти");
-  const rows = await db.application.findMany({ where: { candidateId: user.id }, orderBy: { createdAt: "desc" }, include: { vacancy: { include: vacancyCardInclude } } });
+  const rows = await db.application.findMany({ where: { candidateId: user.id }, orderBy: { createdAt: "desc" }, include: { vacancy: { select: vacancyCardSelect } } });
   return Response.json({
     items: rows.map((a) => ({
       id: a.id,

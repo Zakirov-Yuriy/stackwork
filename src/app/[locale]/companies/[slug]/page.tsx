@@ -8,7 +8,7 @@ import { db } from "@/lib/db";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { VacancyCard } from "@/components/vacancy-card";
-import { vacancyCardInclude } from "@/lib/vacancies";
+import { vacancyCardSelect } from "@/lib/vacancies";
 import { savedIdsFor } from "@/lib/saved";
 import { getCurrentUser } from "@/lib/session";
 import { CompanyAvatar } from "@/components/company-avatar";
@@ -33,7 +33,7 @@ export default async function CompanyPage(props: PageProps<"/[locale]/companies/
 
   const vacancies = await db.vacancy.findMany({
     where: { companyId: c.id, status: "PUBLISHED" },
-    include: vacancyCardInclude,
+    select: vacancyCardSelect,
     orderBy: { publishedAt: "desc" },
   });
   const now = new Date();

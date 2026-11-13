@@ -16,7 +16,8 @@
     "postinstall": "prisma generate",
     "jobs:import": "node --import tsx --conditions react-server scripts/import.ts",
     "jobs:salary": "node --import tsx scripts/backfill-salary.ts",
-    "admin:create": "node --import tsx scripts/admin.ts"
+    "admin:create": "node --import tsx scripts/admin.ts",
+    "db:merge-from": "node --import tsx scripts/merge-from.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.1",
