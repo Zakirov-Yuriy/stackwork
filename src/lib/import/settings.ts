@@ -82,7 +82,10 @@ function upgrade(r: Record<string, unknown>): Record<string, unknown> {
 
 /** Приводит произвольный JSON к валидным настройкам, неизвестное отбрасывает. */
 export function normalizeImportSettings(raw: unknown): ImportSettings {
-  const r = upgrade((raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>);
+  // Пустая запись (новая база, настроек ещё нет) это не старая версия настроек, а значения по умолчанию:
+  // иначе upgrade() включил бы только четыре источника вместо всех
+  const stored = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+  const r = Object.keys(stored).length ? upgrade(stored) : { ...DEFAULT_IMPORT_SETTINGS, settingsVersion: 2 };
   const d = DEFAULT_IMPORT_SETTINGS;
   return {
     enabledSources: Array.isArray(r.enabledSources)
